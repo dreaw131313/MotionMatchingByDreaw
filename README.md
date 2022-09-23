@@ -23,7 +23,7 @@ Animation system for Unity engine based on motion matching
 
 ![image](https://user-images.githubusercontent.com/49455788/192016139-0c37036f-d4b0-4097-a1c3-a2a192c49062.png)
 
-Editor for creating animation states with transitions between them. Condition to fullfil trnasition can be determined by using parameters (bools, ints and floats).
+Editor for creating animation states with transitions between them. Condition to fullfil transition can be determined by using parameters (bools, ints, floats and triggers).
 
 
 ### Motion matching data editor:
