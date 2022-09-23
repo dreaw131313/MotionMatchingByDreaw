@@ -30,8 +30,8 @@ Editor for creating animation state machine.
 
 In this editor we can add a lot of data to **Motion Matching Data** asset, such as:
 - Sections - time intervals in animation, wchich can be used as:
-  - time intervals in witch conditions of transition should be checked
-  - time intervals in which next animation should be finded
+  - time intervals during which the transition conditions should be checked
+  - time intervals where motion matching finding should find next animation
 - Conatct points - points which are used in contact state of **Motion Matching Animator_SO** to move character betweem points specified in game world (they can be used to implement parkour)
 - Curves - works like curves in normal animation, but theirs values are evaluated in LateUpdate.
 - Animation Events - worls like events in normal animations but are fired in LateUpdate
