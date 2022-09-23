@@ -35,4 +35,8 @@ In this editor we can add a lot of data to **Motion Matching Data** asset, such 
   - time intervals in witch conditions of transition should be checked
   - time intervals in which next animation should be finded
 - Conatct points - points which are used in contact state of **Motion Matching Animator_SO** to move character betweem points specified in game world (they can be used to implement parkour)
+- Curves - works like curves in normal animation, but theirs values are evaluated in LateUpdate.
+- Animation Events - worls like events in normal animations but are fired in LateUpdate
+- Bone Tracks - experimental
+- Animation Speed Curve - it is curve which represent animation speed multiplier
 
