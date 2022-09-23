@@ -26,7 +26,7 @@ Editor for creating animation state machine.
 
 ### Motion matching data editor:
 
-![image](https://user-images.githubusercontent.com/49455788/192018706-133718c5-b642-42ea-8fa6-9ec539b83ecb.png)
+![image](https://user-images.githubusercontent.com/49455788/192033653-67cf1930-caf5-4695-95cb-31b27ec3be08.png)
 
 In this editor we can add a lot of data to **Motion Matching Data** asset, such as:
 - Sections - time intervals in animation, wchich can be used as:
