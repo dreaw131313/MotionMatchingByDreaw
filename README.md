@@ -6,12 +6,12 @@ Animation system for Unity engine based on motion matching
 **Data Creator** or **DataCreator_New** - stores data and animations to calculate "Motion Matching Data" asset <br/> 
 **Data Creator Trajectory Settings** - stores past and future times of trajectory points needed to create trajectory<br/> 
 **Motion Matching Bone Profile** - stores information about bones witch will be used to match animations<br/> 
-**Motion Matching Data** - assets which stores calculated data (trajectory and pose) for specific animations, this assets are created by editors which use **Data Creator** or **DataCreator_New**. This asset can be editoed in **Motion matching data editor**
+**Motion Matching Data** - stores calculated data (trajectory and pose) for specific animations, this assets are created by editors which use **Data Creator** or **DataCreator_New**. This asset can be editoed in **Motion matching data editor**
 
 ### Runtime assets:
 **Motion Matching Animator_SO** - asset which represent animation state machine controller (like mecanim animation controller)<br/>
-**Native Motion Group** - asset which represent one or more animations. This asset need to be placed in states of **Motion Matching Animator_SO**.
-
+**Native Motion Group** - asset which represent one or more animations. This asset need to be placed in states of **Motion Matching Animator_SO**. <br/>
+**Section Dependencies** - stores information about sections (time intervals) of animation
 
 
 
