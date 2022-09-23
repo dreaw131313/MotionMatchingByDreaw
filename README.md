@@ -32,7 +32,7 @@ Editor for creating animation states with transitions between them. Condition to
 
 In this editor we can add a lot of data to **Motion Matching Data** asset, such as:
 - Sections - time intervals in animation, wchich can be used as:
-  - time interval in witch condition of transition should be checked
-  - time interval in which next animation should be finded
+  - time intervals in witch conditions of transition should be checked
+  - time intervals in which next animation should be finded
 - Conatct points - points which are used in contact state of **Motion Matching Animator_SO** to move character betweem points specified in game world (they can be used to implement parkour)
 
