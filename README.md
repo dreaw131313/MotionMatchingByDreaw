@@ -1,8 +1,6 @@
 # MotionMatchingByDreaw
 Animation system for Unity engine based on motion matching
 
-## Dictionary:
-
 ## New Assets (by class names):
 ### Editor assets:
 **Data Creator** or **DataCreator_New** - stores data and animations to calculate "Motion Matching Data" asset <br/> 
