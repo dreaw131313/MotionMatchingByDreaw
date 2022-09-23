@@ -6,7 +6,7 @@ using UnityEngine;
 namespace MotionMatching.Tools
 {
 	[CreateAssetMenu(fileName ="MotionMatchingDataCreator2", menuName ="Motion Matching/Creators/MotionMatching Data Creator 2")]
-	public class MotionMatchingDataCreator2 : ScriptableObject
+	public class DataCreator_New : ScriptableObject
 	{
 		[SerializeField]
 		public GameObject AnimatedGameObject;

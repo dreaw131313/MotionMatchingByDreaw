@@ -22,10 +22,10 @@ namespace MotionMatching.Tools
 		[OnOpenAsset(0)]
 		public static bool OnAssetOpen(int instanceID, int line)
 		{
-			MotionMatchingDataCreator2 asset;
+			DataCreator_New asset;
 			try
 			{
-				asset = (MotionMatchingDataCreator2)EditorUtility.InstanceIDToObject(instanceID);
+				asset = (DataCreator_New)EditorUtility.InstanceIDToObject(instanceID);
 			}
 			catch (System.Exception)
 			{
@@ -46,7 +46,7 @@ namespace MotionMatching.Tools
 			return true;
 		}
 
-		private void SetAsset(MotionMatchingDataCreator2 newCreator)
+		private void SetAsset(DataCreator_New newCreator)
 		{
 			creator = newCreator;
 		}
@@ -129,8 +129,8 @@ namespace MotionMatching.Tools
 
 
 		#region Asset options
-		MotionMatchingDataCreator2 creator;
-		MotionMatchingDataCreator2 bufforCreator;
+		DataCreator_New creator;
+		DataCreator_New bufforCreator;
 		float horizontalMargin = 7.5f;
 		private void AssetOptionsOnGUI()
 		{
@@ -139,7 +139,7 @@ namespace MotionMatching.Tools
 				GUILayout.Space(horizontalMargin);
 
 				GUILayout.Label("Data creator", GUILayout.Width(75));
-				creator = (MotionMatchingDataCreator2)EditorGUILayout.ObjectField(creator, typeof(MotionMatchingDataCreator2), true, GUILayout.Width(200));
+				creator = (DataCreator_New)EditorGUILayout.ObjectField(creator, typeof(DataCreator_New), true, GUILayout.Width(200));
 
 				GUILayout.Space(horizontalMargin);
 

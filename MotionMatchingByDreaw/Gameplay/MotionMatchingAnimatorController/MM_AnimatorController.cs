@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MotionMatching.Gameplay
 {
-	[CreateAssetMenu(fileName = "MotionMatchingAnimatorController", menuName = "Motion Matching/Motion Matching Animator Controller")]
+	//[CreateAssetMenu(fileName = "MotionMatchingAnimatorController", menuName = "Motion Matching/Motion Matching Animator Controller")]
 	public class MM_AnimatorController : ScriptableObject
 	{
 		[SerializeField]
