@@ -14,9 +14,9 @@ Animation system for Unity engine based on motion matching
 **Section Dependencies** - stores information about sections (time intervals) of animation
 
 ### Components:
-**Motion Matching Component** - this component equivalent to unity Animator component.
+**Motion Matching Component** - component equivalent to unity Animator component.
 
-**Trajectory Maker** - this component is responsible for creating trajectory which is passed to **Motion Matching Component**. This is my own implementation and of course it can be replaced.
+**Trajectory Maker** - component responsible for creating trajectory which is passed to **Motion Matching Component**. This is my own implementation and of course it can be replaced.
 
 ## Editors:
 
