@@ -665,6 +665,11 @@ namespace MotionMatching.Tools
 
 			if (SelectedLayer != null)
 			{
+				if (SelectedLayer.States == null)
+				{
+					SelectedLayer.States = new List<State_SO>();
+				}
+
 				for (int stateIdx = 0; stateIdx < SelectedLayer.States.Count; stateIdx++)
 				{
 					State_SO state = SelectedLayer.States[stateIdx];
