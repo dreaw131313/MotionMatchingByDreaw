@@ -96,6 +96,11 @@ namespace MotionMatching.Gameplay
 			StateMixer.OnRemovingAllPlayables = RemoveAllBlendedAnimationData;
 
 			CurrenBlendingAnimationData = new List<BlendedAnimationData>();
+
+#if UNITY_EDITOR
+			CheckSectionDependenciesCOuntInData();
+#endif
+
 		}
 
 		public virtual void Awake()
@@ -442,7 +447,7 @@ namespace MotionMatching.Gameplay
 
 			int stateBlendMixerIndex = m_LogicLayer.m_CurrentBlendedStates.IndexOf(this);
 
-			if(stateBlendMixerIndex != -1)
+			if (stateBlendMixerIndex != -1)
 			{
 				m_LogicLayer.m_CurrentBlendedStates[stateBlendMixerIndex] = null;
 			}
@@ -580,6 +585,29 @@ namespace MotionMatching.Gameplay
 			}
 		}
 
+
+		void CheckSectionDependenciesCOuntInData()
+		{
+			var nmg = m_DataState.MotionData;
+			if (nmg)
+			{
+				var sd = nmg.SectionsDependencies;
+				if (sd == null)
+				{
+					throw new System.Exception($"Native motion group \"{nmg.name}\" do not have seted section dependencies asset!");
+				}
+
+				for (int i = 0; i < nmg.MotionDataInfos.Count; i++)
+				{
+					var mdi = nmg.MotionDataInfos[i];
+
+					if (mdi.Sections.Count != sd.SectionsCount)
+					{
+						throw new System.Exception($"In native motion group \"{nmg.name}\" animation data have diffrent sections count than setted Section Dependencies asset with name \"{sd.name}\"!");
+					}
+				}
+			}
+		}
 	}
 
 }
