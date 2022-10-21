@@ -7,10 +7,9 @@ using Unity.Mathematics;
 
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 #endif
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace MotionMatching.Gameplay
 {
@@ -1291,7 +1290,16 @@ namespace MotionMatching.Gameplay
 		{
 			try
 			{
+
+				// Fix by AB user of discord:
+#if UNITY_ANDROID
+				var loadingRequest = UnityWebRequest.Get(path);
+				loadingRequest.SendWebRequest();
+				while (!loadingRequest.isDone && !loadingRequest.isNetworkError && !loadingRequest.isHttpError);
+				MemoryStream fileStream = new MemoryStream(loadingRequest.downloadHandler.data);
+#else
 				FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+#endif
 
 				BinaryFormatter formatter = new BinaryFormatter();
 
