@@ -2511,6 +2511,7 @@ namespace MotionMatching.Gameplay
 
 		#endregion
 
+
 		#region State Behavior
 		public void AddBehaviorToState(string stateName, MotionMatchingStateBehavior behavior, int layerIndex = 0)
 		{
