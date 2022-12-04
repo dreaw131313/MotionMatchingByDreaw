@@ -166,17 +166,17 @@ namespace MotionMatching.Gameplay
 		[SerializeField]
 		public bool IsImpact;
 
-		public FrameContact(float3 position, float3 contactSurfaceNormal, bool isImpact)
+		public FrameContact(float3 position, float3 contactSurfaceReverseNormal, bool isImpact)
 		{
 			this.position = position;
-			this.normal = contactSurfaceNormal;
+			this.normal = contactSurfaceReverseNormal;
 			this.IsImpact = isImpact;
 		}
 
-		public FrameContact(float3 position, float3 contactSurfaceNormal)
+		public FrameContact(float3 position, float3 contactSurfaceReverseNormal)
 		{
 			this.position = position;
-			this.normal = contactSurfaceNormal;
+			this.normal = contactSurfaceReverseNormal;
 			this.IsImpact = false;
 		}
 
@@ -292,6 +292,11 @@ namespace MotionMatching.Gameplay
 		{
 			this.forward = forward;
 			this.frameContact = contactPoint;
+		}
+		public SwitchStateContact(Vector3 position, Vector3 contactSurfaceReverseNormal, Vector3 forward)
+		{
+			this.forward = forward;
+			this.frameContact = new FrameContact(position, contactSurfaceReverseNormal);
 		}
 	}
 

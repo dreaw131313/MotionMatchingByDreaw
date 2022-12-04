@@ -1965,17 +1965,15 @@ namespace MotionMatching.Tools
 		{
 			if (editor.EditedData == null || section == null) return;
 
-			if (editor.EditedData != null && section != null && !editor.EditedData.sections.Contains(section))
+			if (editor.EditedData != null && section != null &&
+				!(editor.EditedData.sections.Contains(section) || section == editor.EditedData.neverChecking || section == editor.EditedData.notLookingForNewPose))
 			{
 				return;
 			}
 
 			float valueWidth = 50f;
-
 			float buttonWidth = 13f;
-
 			float verticalMarigin = 10f;
-
 			float intervalHeight = sliderHeight + controllsHeight;
 
 			if (section.timeIntervals != null)

@@ -79,11 +79,13 @@ namespace MotionMatching.Tools
 			GUILayout.BeginHorizontal();
 			{
 				GUILayout.Label("Animator");
-				MotionMatchingAnimator_SO buffor = EditorGUILayout.ObjectField(Editor.Animator, typeof(MotionMatchingAnimator_SO), false) as MotionMatchingAnimator_SO;
+				MotionMatchingAnimator_SO buffor = Editor.Animator;
+
+				Editor.Animator = (MotionMatchingAnimator_SO)EditorGUILayout.ObjectField(Editor.Animator, typeof(MotionMatchingAnimator_SO), false);
 
 				if (buffor != Editor.Animator)
 				{
-					Editor.Animator = buffor;
+					//Editor.Animator = buffor;
 
 					Editor.leftMenu.OnChangeAnimatorAsset();
 					Editor.graphMenu.OnChangeAnimatorAsset();
@@ -200,7 +202,7 @@ namespace MotionMatching.Tools
 			{
 				Event e = Event.current;
 
-				if(e.type == EventType.MouseDown && e.button == 0)
+				if (e.type == EventType.MouseDown && e.button == 0)
 				{
 					Animator.SelectedLayer = Animator.Layers[index];
 					Editor.Repaint();
