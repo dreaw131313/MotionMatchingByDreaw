@@ -25,6 +25,8 @@ namespace MotionMatching.Gameplay
 		[SerializeField]
 		[Min(0.001f)]
 		private float trajectoryRecordUpdateTime = 0.033f;
+		[SerializeField]
+		private bool keepRecordedTrajectoryFlat;
 		//[SerializeField]
 		//private bool trajectoryWithCollision = false;
 
@@ -90,7 +92,8 @@ namespace MotionMatching.Gameplay
 		//Holds information whether trajectory points from first with future time to last are actually colliding(true if collides, false if not).
 		public bool[] PointsCollisions { get => pointsCollisions; private set => pointsCollisions = value; }
 		public TrajectoryCreationSettings CreationSettings { get => creationSettings; }
-		public int FirstIndexWithFutureTime { get => firstIndexWithFutureTime;  }
+		public int FirstIndexWithFutureTime { get => firstIndexWithFutureTime; }
+		public bool KeepRecordedTrajectoryFlat { get => keepRecordedTrajectoryFlat; set => keepRecordedTrajectoryFlat = value; }
 
 		// Need be seted by user
 		[HideInInspector]
@@ -690,11 +693,7 @@ namespace MotionMatching.Gameplay
 			)
 		{
 			float percentage = Mathf.Lerp(currentPointTime / lastPointTime, 1f, percentageFactor);
-			float factor1 = 1f + 3 * percentage * percentage * percentage * bias;
-
-			//float factor1 = 1f +
-			//				bias * doublePercentage;
-
+			float factor1 = 1f + 3 * percentage * percentage * bias;
 			float finalFactor = factor1 * acceleration * stepTime;
 
 			return finalFactor;
@@ -1112,7 +1111,6 @@ namespace MotionMatching.Gameplay
 							point.Position = recordedPoint.position;
 							point.Velocity = recordedPoint.velocity;
 							point.Orientation = recordedPoint.orientation;
-							trajectoryPoints_O[goalPointIndex] = point;
 						}
 						else
 						{
@@ -1123,9 +1121,12 @@ namespace MotionMatching.Gameplay
 							point.Position = lerpedPoint.position;
 							point.Velocity = lerpedPoint.velocity;
 							point.Orientation = lerpedPoint.orientation;
-							trajectoryPoints_O[goalPointIndex] = point;
 						}
-
+						if (keepRecordedTrajectoryFlat)
+						{
+							point.Position.y = transform.position.y;
+						}
+						trajectoryPoints_O[goalPointIndex] = point;
 
 						goalPointIndex++;
 					}
@@ -1157,6 +1158,7 @@ namespace MotionMatching.Gameplay
 				velocity = new float3(0, 0, 0);
 			}
 			recordTimer = 0f;
+
 			recordedTrajectoryPoints.AddItem(
 				new RecordedTrajectoryPoint(
 					objectPosition,
