@@ -30,13 +30,13 @@ namespace MotionMatching.Gameplay
 		[SerializeField]
 		public float[] TrajectoryTimes;
 		[SerializeField]
-		[Range(0.01f, 1f)]
+		[Min(0.01f)]
 		public float TrajectoryCostWeight = 1f;
 		[SerializeField]
-		[Range(0.01f, 1f)]
+		[Min(0.01f)]
 		public float PoseCostWeight = 1f;
 		[SerializeField]
-		[Range(0.01f, 1f)]
+		[Min(0.01f)]
 		public float ContactsCostWeight = 1f;
 #if UNITY_EDITOR
 		[SerializeField]
@@ -1182,26 +1182,12 @@ namespace MotionMatching.Gameplay
 			{
 				foreach (FrameData frame in data.frames)
 				{
-					// FrameData:
-					//FramesData.Add(new FrameDataInfo(
-					//	dataIndex,
-					//	frame.localTime,
-					//	frame.sections,
-					//	data.neverChecking.Contain(frame.localTime)
-					//	));
-
-					//FramesData[currentFrame] = new FrameDataInfo(
-					//	dataIndex,
-					//	frame.localTime,
-					//	frame.sections,
-					//	data.neverChecking.Contain(frame.localTime)
-					//	);
-
 					ClipsIndexes[currentFrame] = dataIndex;
 					LocalTimes[currentFrame] = frame.localTime;
 					Sections[currentFrame] = frame.sections.sections;
 					NeverChecking[currentFrame] = data.neverChecking.Contain(frame.localTime) ? 1 : 0;
 					currentFrame++;
+
 
 					// TrajectoryPoints
 					for (int tpIndex = 0; tpIndex < frame.trajectory.Length; tpIndex++)

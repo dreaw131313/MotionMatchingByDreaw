@@ -1080,9 +1080,6 @@ namespace MotionMatching.Gameplay
 			return desiredDeltaPos;
 		}
 
-
-
-
 		void RecordPastTimeTrajectory_Deprecated(
 			float updateTime,
 			float timeDeltaTime,
@@ -1124,7 +1121,7 @@ namespace MotionMatching.Gameplay
 						}
 						if (keepRecordedTrajectoryFlat)
 						{
-							point.Position.y = transform.position.y;
+							point.Position.y = objectPosition.y;
 						}
 						trajectoryPoints_O[goalPointIndex] = point;
 
@@ -1169,7 +1166,6 @@ namespace MotionMatching.Gameplay
 		}
 
 		#endregion
-
 
 #if UNITY_EDITOR
 		[Header("DEBUG")]

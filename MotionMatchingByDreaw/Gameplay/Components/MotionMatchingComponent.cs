@@ -189,6 +189,7 @@ namespace MotionMatching.Gameplay
 		//private DirectorUpdateMode timeUpdateMode = DirectorUpdateMode.GameTime;
 
 		private ITrajectoryCreator trajectoryCreator;
+		public ITrajectoryCreator TrajectoryCreator { get => trajectoryCreator; }
 
 		Transform _Transform;
 

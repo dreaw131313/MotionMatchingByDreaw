@@ -105,9 +105,9 @@ namespace MotionMatching.Gameplay.Jobs
 					//float3 velDelta = TP.Velocity - dataTP.Velocity;
 					//float3 orientDelta = TP.Orientation - dataTP.Orientation;
 
-					trajectoryCost += 
-						math.lengthsq(TP.Position - dataTP.Position) + 
-						math.lengthsq(TP.Velocity - dataTP.Velocity) + 
+					trajectoryCost +=
+						math.lengthsq(TP.Position - dataTP.Position) +
+						math.lengthsq(TP.Velocity - dataTP.Velocity) +
 						math.lengthsq(TP.Orientation - dataTP.Orientation);
 				}
 
@@ -121,8 +121,8 @@ namespace MotionMatching.Gameplay.Jobs
 
 					//float3 posDelta = bone.localPosition - dataBone.localPosition;
 					//float3 velDelta = bone.velocity - dataBone.velocity;
-					poseCost += 
-						math.lengthsq(bone.localPosition - dataBone.localPosition) + 
+					poseCost +=
+						math.lengthsq(bone.localPosition - dataBone.localPosition) +
 						math.lengthsq(bone.velocity - dataBone.velocity);
 				}
 

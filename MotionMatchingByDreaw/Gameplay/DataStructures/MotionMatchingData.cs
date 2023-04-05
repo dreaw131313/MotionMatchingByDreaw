@@ -105,7 +105,7 @@ namespace MotionMatching.Gameplay
 		{
 		}
 
-		public MotionMatchingData(
+		public void InitialSetup(
 			AnimationClip clip,
 			float frameRate,
 			string name,
@@ -137,7 +137,7 @@ namespace MotionMatching.Gameplay
 			Curves = new List<MotionMatchingDataCurve>();
 		}
 
-		public MotionMatchingData(
+		public void InitialSetup(
 			AnimationClip[] clips,
 			float[] weightsForClips,
 			float frameRate,
@@ -171,7 +171,7 @@ namespace MotionMatching.Gameplay
 
 		}
 
-		public MotionMatchingData(
+		public void InitialSetup(
 			AnimationClip[] clips,
 			Vector3[] animationSeqInfos,
 			float frameRate,

@@ -196,18 +196,14 @@ namespace MotionMatching.Gameplay
 			}
 			else
 			{
-				//if (!m_LogicLayer.MotionMatchingJobHandle.IsCompleted)
-				//{
-				//	return;
-				//}
+				if (!m_LogicLayer.MotionMatchingJobHandle.IsCompleted)
+				{
+					return;
+				}
+
 				m_LogicLayer.MotionMatchingJobHandle.Complete();
 			}
 			isFindingNewPose = false;
-
-			//if(isSectionChange || isMotionGroupChange)
-			//{
-			//	return;
-			//}
 
 			MotionMatchingJobOutput output = JoinJobsOutput();
 			if (!IsTheWinnerAtTheSamePlace(WinerFrameCheckingType.CheckAllPlayedClips, output))
@@ -317,6 +313,7 @@ namespace MotionMatching.Gameplay
 			m_LogicLayer.MotionMatchingStateJob.SectionMask = m_CurrentSectionMask;
 			m_LogicLayer.MotionMatchingStateJob.CurrentStateIndex = Index;
 
+
 			m_LogicLayer.MotionMatchingStateJob.CurrentTrajectory = motionMatching.InputLocalTrajectory;
 			m_LogicLayer.MotionMatchingStateJob.CurrentPose = m_LogicLayer.CurrentPose;
 
@@ -338,6 +335,7 @@ namespace MotionMatching.Gameplay
 		public override void RunTestJob()
 		{
 			int batchSize = CurrentMotionGroup.FramesPerThread;
+
 			m_LogicLayer.MotionMatchingStateJob.BatchSize = batchSize;
 			m_LogicLayer.MotionMatchingStateJob.SectionMask = m_CurrentSectionMask;
 			m_LogicLayer.MotionMatchingStateJob.CurrentStateIndex = Index;

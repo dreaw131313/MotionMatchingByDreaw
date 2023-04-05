@@ -16,7 +16,7 @@ namespace MotionMatching.Tools
 		PoseVelocity = 1 << 3,
 		Contacts = 1 << 4,
 		Tracks = 1 << 5,
-
+		CharacterVelocity = 1 << 6,
 	}
 
 	public class MMDataEditorRightMenu : MMDataEditorMenuBaseClass
@@ -1036,6 +1036,23 @@ namespace MotionMatching.Tools
 						}
 					}
 
+				}
+			}
+
+			if ((GizmosToDraw & MotionMatchingDataEditorGizmos.CharacterVelocity) != 0)
+			{
+				FrameData frame = data.GetClossestFrame(animationTime);
+
+				if (frame.Velocity != Vector3.zero)
+				{
+					float velMagnitude = frame.Velocity.magnitude;
+					Handles.color = Color.cyan;
+					MM_Gizmos.DrawArrow_Handles(
+						transform.position,
+						transform.TransformDirection(frame.Velocity).normalized,
+						velMagnitude,
+						0.3f * velMagnitude
+						);
 				}
 			}
 		}

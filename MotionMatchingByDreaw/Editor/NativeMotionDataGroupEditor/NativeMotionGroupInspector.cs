@@ -427,6 +427,24 @@ namespace MotionMatching.Tools
 			float lastLabel_2 = EditorGUIUtility.labelWidth;
 			EditorGUIUtility.labelWidth = 150;
 
+			int floatsPerTrajectoryPoint = 9;
+			int floatsPerVelocity = 3;
+			int floatsPerBone = 6;
+			int floatsPerContactPoint = 6;
+
+			float avarageTrajectoryDataWeight = nativeGroup.TrajectoryOrientationWeight + nativeGroup.TrajectoryVelocityWeight + nativeGroup.TrajectoryPositionWeight;
+			avarageTrajectoryDataWeight /= 3f;
+
+			float trajectoryFloatCount = nativeGroup.TrajectoryTimes.Length * floatsPerTrajectoryPoint * nativeGroup.TrajectoryCostWeight * avarageTrajectoryDataWeight;
+			float poseFloatCount = nativeGroup.PoseBonesCount * floatsPerBone * nativeGroup.PoseCostWeight;
+			float contactsFloatCount = nativeGroup.ContactPointsCount * floatsPerContactPoint * nativeGroup.ContactsCostWeight;
+
+			float allFloatCountTakenToCalculatingCost =
+				trajectoryFloatCount +
+				poseFloatCount +
+				contactsFloatCount;
+
+
 			GUILayoutElements.DrawHeader("Cost calculation:", GUIResources.GetMediumHeaderStyle_SM());
 			GUILayout.BeginVertical(GUILayout.Width(200));
 			GUILayout.Space(5);
@@ -437,6 +455,9 @@ namespace MotionMatching.Tools
 								"Trajectory weight:",
 								Mathf.Clamp(nativeGroup.TrajectoryCostWeight, MIN_WEIGHT_VALUE, float.MaxValue)
 								);
+
+				float finalCostPercentage = (float)trajectoryFloatCount / allFloatCountTakenToCalculatingCost * 100f;
+				EditorGUILayout.LabelField($"({finalCostPercentage.ToString("0.00")} %)");
 			}
 			GUILayout.EndHorizontal();
 
@@ -448,6 +469,9 @@ namespace MotionMatching.Tools
 								"Pose weight:",
 								Mathf.Clamp(nativeGroup.PoseCostWeight, MIN_WEIGHT_VALUE, float.MaxValue)
 								);
+
+				float finalCostPercentage = (float)poseFloatCount / allFloatCountTakenToCalculatingCost * 100f;
+				EditorGUILayout.LabelField($"({finalCostPercentage.ToString("0.00")} %)");
 			}
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
@@ -457,6 +481,9 @@ namespace MotionMatching.Tools
 								"Contacts weight:",
 								Mathf.Clamp(nativeGroup.ContactsCostWeight, MIN_WEIGHT_VALUE, float.MaxValue)
 								);
+
+				float finalCostPercentage = (float)contactsFloatCount / allFloatCountTakenToCalculatingCost * 100f;
+				EditorGUILayout.LabelField($"({finalCostPercentage.ToString("0.00")} %)");
 			}
 			GUILayout.EndHorizontal();
 			EditorGUIUtility.labelWidth = lastLabel_2;

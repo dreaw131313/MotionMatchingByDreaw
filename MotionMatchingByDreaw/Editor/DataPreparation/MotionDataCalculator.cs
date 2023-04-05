@@ -26,6 +26,7 @@ namespace MotionMatching.Tools
 				graph.Initialize(go);
 			}
 
+			Transform goTransform = go.transform;
 			go.transform.position = Vector3.zero;
 			go.transform.rotation = Quaternion.identity;
 
@@ -34,7 +35,9 @@ namespace MotionMatching.Tools
 			int numberOfFrames = Mathf.FloorToInt(clip.length / frameTime) + 1;
 			#endregion
 
-			MotionMatchingData data = new MotionMatchingData(
+
+			MotionMatchingData data = ScriptableObject.CreateInstance<MotionMatchingData>();
+			data.InitialSetup(
 				clip,
 				sampling,
 				clip.name,
@@ -65,14 +68,18 @@ namespace MotionMatching.Tools
 
 			graph.Evaluate(frameTime);
 
+
 			for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++)
 			{
+				Vector3 previousPos = goTransform.position;
 				for (int i = 0; i < bonesMask.Length; i++)
 				{
 					previuData[i] = GetValuesFromTransform(bonesMask[i].Bone, root);
 				}
 
 				graph.Evaluate(frameTime);
+
+				Vector3 nextPos = goTransform.position;
 
 				float currentCheckingTime = frameIndex * frameTime;
 
@@ -113,12 +120,16 @@ namespace MotionMatching.Tools
 
 				trajectoryBuffor = new Trajectory(trajectoryStepTimes.Count);
 
+				Vector3 globalVel = (nextPos - previousPos) / frameTime;
+				Vector3 localVel = goTransform.InverseTransformDirection(globalVel);
+
 				frameBuffer = new Gameplay.FrameData(
 					frameIndex,
 					currentCheckingTime,
 					trajectoryBuffor,
 					poseBuffor,
-					new FrameSections(true)
+					new FrameSections(true),
+					localVel
 					);
 				data.AddFrame(frameBuffer);
 			}
@@ -226,6 +237,7 @@ namespace MotionMatching.Tools
 				graph.Initialize(go);
 			}
 
+			Transform goTransform = go.transform;
 			go.transform.position = Vector3.zero;
 			go.transform.rotation = Quaternion.identity;
 
@@ -244,7 +256,8 @@ namespace MotionMatching.Tools
 				weightsForClips[i] = weightsForClips[i] / weightSum;
 			}
 
-			MotionMatchingData data = new MotionMatchingData(
+			MotionMatchingData data = ScriptableObject.CreateInstance<MotionMatchingData>();
+			data.InitialSetup(
 				clips,
 				weightsForClips,
 				sampling,
@@ -285,6 +298,8 @@ namespace MotionMatching.Tools
 			// FramesCalculation
 			for (; frameIndex < numberOfFrames; frameIndex++)
 			{
+				Vector3 previousPos = goTransform.position;
+
 				for (int i = 0; i < bonesMask.Length; i++)
 				{
 					previewBoneData[i] = GetValuesFromTransform(bonesMask[i].Bone, root);
@@ -292,6 +307,8 @@ namespace MotionMatching.Tools
 
 				graph.Evaluate(frameTime);
 				currentCheckingTime = frameIndex * frameTime;
+
+				Vector3 nextPos = goTransform.position;
 
 				for (int i = 0; i < bonesMask.Length; i++)
 				{
@@ -329,12 +346,16 @@ namespace MotionMatching.Tools
 
 				trajectoryBuffor = new Trajectory(trajectoryStepTimes.Count);
 
+				Vector3 globalVel = (nextPos - previousPos) / frameTime;
+				Vector3 localVel = goTransform.InverseTransformDirection(globalVel);
+
 				frameBuffer = new Gameplay.FrameData(
 					frameIndex,
 					currentCheckingTime,
 					trajectoryBuffor,
 					poseBuffor,
-					new FrameSections(true)
+					new FrameSections(true),
+					localVel
 					);
 				data.AddFrame(frameBuffer);
 			}

@@ -64,7 +64,9 @@ namespace MotionMatching.Gameplay
 
 
 			EditorUtility.SetDirty(this);
-			AssetDatabase.SaveAssetIfDirty(AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(this)));
+			//AssetDatabase.SaveAssetIfDirty(AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(this)));
+
+			AssetDatabase.SaveAssets();
 		}
 
 		public BonCalculationSettingsProfile[] GetProfilesWithTransforms(Transform root)
