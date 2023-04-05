@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -51,6 +52,8 @@ namespace MotionMatching.Gameplay
 		public int ContactPointsCount;
 		[SerializeField]
 		private string binaryAssetName = string.Empty;
+		[SerializeField]
+		private bool isBinaryDataLoaded = false;
 
 		#region Runtime
 		public NativeArray<FrameDataInfo> Frames;
@@ -97,6 +100,7 @@ namespace MotionMatching.Gameplay
 		public int SingleTrajectoryPointsCount { get => TrajectoryTimes.Length; }
 		public bool IsInitialized { get { return Frames.IsCreated; } }
 
+		public bool IsBinaryDataLoaded { get => isBinaryDataLoaded; set => isBinaryDataLoaded = value; }
 
 		public NativeMotionGroup()
 		{
@@ -121,7 +125,6 @@ namespace MotionMatching.Gameplay
 
 			m_Subscribers = new HashSet<MotionMatchingComponent>();
 #endif
-
 			LoadNativeData();
 		}
 
@@ -497,10 +500,14 @@ namespace MotionMatching.Gameplay
 
 			if (binaryMotionGroup == null)
 			{
-				Debug.LogError(string.Format("Failed to load binary data for NativeMoionGroup \"{0}\"", this.name));
+				isBinaryDataLoaded = false;
+				Debug.LogError(string.Format("Failed to load binary data for NativeMoionGroup \"{0}\" at path \"{1}\"", this.name, AssetDatabase.GetAssetPath(this)));
 			}
-
-			CreateNativeData(binaryMotionGroup);
+			else
+			{
+				isBinaryDataLoaded = true;
+				CreateNativeData(binaryMotionGroup);
+			}
 		}
 
 		private void CreateNativeData(BinaryMotionDataGroup binaryMotionGroup)
@@ -1295,7 +1302,7 @@ namespace MotionMatching.Gameplay
 				return binaryGroup;
 
 			}
-			catch (SerializationException e)
+			catch (SystemException e)
 			{
 				Debug.LogError(e.Message);
 			}

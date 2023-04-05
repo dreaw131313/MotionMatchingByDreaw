@@ -3590,26 +3590,27 @@ namespace MotionMatching.Gameplay
 					State_SO state = layer.States[stateIndex];
 
 #if UNITY_EDITOR
-					if (state.MotionData != null)
+					if (state.MotionData == null)
 					{
-						state.MotionData.SubscribeByMotionMatchingComponent(this);
+						Debug.LogError($"In MotionMatchingComponent on game object \"{gameObject.name}\" in animator \"{motionMatchingController.name}\" in state \"{state.Name}\" native motion group is null!", this);
+					}
+					else if (!state.MotionData.IsBinaryDataLoaded)
+					{
+						Debug.LogError($"In MotionMatchingComponent on game object \"{gameObject.name}\" in animator \"{motionMatchingController.name}\" in state \"{state.Name}\" binary data for native motion group \"{state.MotionData.name}\" is not loaded!", this);
 					}
 					else
-					{
-						Debug.LogError($"In MotionMatchingComponent on game object \"{gameObject.name}\" in animator \"{motionMatchingController.name}\" in state \"{state.Name}\" native motion group is null!");
-					}
 #endif
-
-					if (state.MotionData != null)
 					{
+						state.MotionData.SubscribeByMotionMatchingComponent(this);
 						int maxGroupJobsOutputCount = state.MotionData.JobsCount;
 						if (maxJobsOutputCount < maxGroupJobsOutputCount)
 						{
 							maxJobsOutputCount = maxGroupJobsOutputCount;
 						}
+
+						logicLayer.logicStates.Add(state.CreateLogicState(this, logicLayer, animationSystem));
 					}
 
-					logicLayer.logicStates.Add(state.CreateLogicState(this, logicLayer, animationSystem));
 				}
 
 				logicLayer.InitializeJobsOutputArray(maxJobsOutputCount);
