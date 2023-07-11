@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
-using static MotionMatching.Tools.MotionMatchingDataEditor_New;
+using static MotionMatching.Tools.MotionMatchingDataEditor;
 
 namespace MotionMatching.Tools
 {
@@ -1162,7 +1162,7 @@ namespace MotionMatching.Tools
 				fullRect.x,
 				fullRect.y + withMargin.height,
 				fullRect.width,
-				MotionMatchingDataEditor_New.AreasMargin
+				MotionMatchingDataEditor.AreasMargin
 				);
 			Rect leftFrame = new Rect(
 				fullRect.x,
@@ -1933,14 +1933,14 @@ namespace MotionMatching.Tools
 
 		Rect menuRect;
 		float scale;
-		MotionMatchingDataEditor_New editor;
+		MotionMatchingDataEditor editor;
 		Rect animationTimeRect;
 
 		Texture intervalBackground;
 		Texture timelineBackgroundTexture;
 
 		public void SetData(
-			MotionMatchingDataEditor_New editor,
+			MotionMatchingDataEditor editor,
 			Rect menuRect,
 			float scale,
 			Rect animationTimeRect,

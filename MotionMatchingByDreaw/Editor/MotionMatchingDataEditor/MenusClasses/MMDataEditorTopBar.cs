@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using static MotionMatching.Tools.MotionMatchingDataEditor_New;
+using static MotionMatching.Tools.MotionMatchingDataEditor;
 
 namespace MotionMatching.Tools
 {

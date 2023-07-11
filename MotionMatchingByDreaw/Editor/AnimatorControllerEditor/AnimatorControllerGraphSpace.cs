@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace MotionMatching.Tools
 {
-	public class AnimatorGraphSpace_Vol3 : AnimatorEditorSpace
+	public class AnimatorControllerGraphSpace : AnimatorEditorSpace
 	{
 		GraphEditorState currentState = GraphEditorState.None;
 

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MotionMatching.Tools
 {
-	public class AnimatorEditorLeftMenuSpace_Vol3 : AnimatorEditorSpace
+	public class AnimatorControllerEditorLeftMenuSpace : AnimatorEditorSpace
 	{
 		Vector2 scrollPosition;
 
@@ -35,10 +35,10 @@ namespace MotionMatching.Tools
 		{
 			Rect rect = MMGUIUtility.MakeMargins(
 				Position,
-				AnimatorEditor_Vol3.MenuHorizontalMargin,
-				AnimatorEditor_Vol3.ResizeMargin,
-				AnimatorEditor_Vol3.MenuVerticalMargin,
-				AnimatorEditor_Vol3.MenuVerticalMargin
+				AnimatorControllerEditor.MenuHorizontalMargin,
+				AnimatorControllerEditor.ResizeMargin,
+				AnimatorControllerEditor.MenuVerticalMargin,
+				AnimatorControllerEditor.MenuVerticalMargin
 				);
 
 			GUILayout.BeginArea(rect);

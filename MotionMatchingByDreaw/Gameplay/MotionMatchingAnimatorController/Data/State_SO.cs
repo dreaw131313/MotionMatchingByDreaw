@@ -5,6 +5,16 @@ using UnityEngine;
 
 namespace MotionMatching.Gameplay
 {
+	[System.Serializable]
+	public enum MotionMatchingStateType : int
+	{
+		MotionMatching,
+		SingleAnimation,
+		ContactAnimationState,
+
+		Undefined = int.MaxValue
+	}
+
 	public abstract class State_SO : ScriptableObject
 	{
 		public abstract MotionMatchingStateType StateType { get; }
@@ -73,7 +83,6 @@ namespace MotionMatching.Gameplay
 			for (int i = 0; i < Transitions.Count; i++)
 			{
 				Transitions[i].nextStateIndex = Transitions[i].ToState.Index;
-				Transitions[i].fromStateIndex = Index;
 			}
 			EditorUtility.SetDirty(this);
 		}
@@ -96,13 +105,9 @@ namespace MotionMatching.Gameplay
 
 			Transition newTransition = new Transition(toState.Index);
 			newTransition.FromState = this;
-			newTransition.toPortal = false;
 			newTransition.ToState = toState;
 			newTransition.nextStateIndex = toState.Index;
 			newTransition.PortalToStateIndex = -1;
-
-
-			newTransition.fromStateIndex = Index;
 
 			Transitions.Add(newTransition);
 
@@ -120,12 +125,9 @@ namespace MotionMatching.Gameplay
 
 			Transition newTransition = new Transition(portal.State.Index);
 			newTransition.FromState = this;
-			newTransition.toPortal = true;
 			newTransition.ToState = portal.State;
 			newTransition.PortalToStateIndex = portalID;
 			newTransition.nextStateIndex = portal.State.Index;
-
-			newTransition.fromStateIndex = Index;
 
 			Transitions.Add(newTransition);
 

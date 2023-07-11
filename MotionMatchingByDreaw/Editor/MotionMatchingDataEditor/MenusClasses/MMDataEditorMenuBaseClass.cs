@@ -2,16 +2,16 @@ using MotionMatching.Gameplay;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static MotionMatching.Tools.MotionMatchingDataEditor_New;
+using static MotionMatching.Tools.MotionMatchingDataEditor;
 
 namespace MotionMatching.Tools
 {
 	public abstract class MMDataEditorMenuBaseClass
 	{
-		protected MotionMatchingDataEditor_New editor;
+		protected MotionMatchingDataEditor editor;
 		protected Rect mainRect;
 		public void SetBasics(
-			MotionMatchingDataEditor_New editor,
+			MotionMatchingDataEditor editor,
 			Rect mainRect
 			)
 		{

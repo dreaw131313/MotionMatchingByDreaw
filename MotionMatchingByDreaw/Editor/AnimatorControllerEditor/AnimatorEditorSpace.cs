@@ -12,7 +12,7 @@ namespace MotionMatching.Tools
 		public float WidthFactor;
 
 
-		public AnimatorEditor_Vol3 Editor { get; set; }
+		public AnimatorControllerEditor Editor { get; set; }
 
 		public MotionMatchingAnimator_SO Animator
 		{

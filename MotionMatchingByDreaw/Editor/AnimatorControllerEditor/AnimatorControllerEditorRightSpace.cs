@@ -1,328 +1,322 @@
-﻿using System;
+using MotionMatching.Gameplay;
+using MotionMatching.Tools;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
-using MotionMatching.Gameplay;
 
 namespace MotionMatching.Tools
 {
-	public class ElementOptionView
+	public class AnimatorControllerEditorRightSpace : AnimatorEditorSpace
 	{
-		MM_AnimatorController animator;
-		MotionMatchingLayer selectedLayer;
-		MotionMatchingNode selectedNode;
-		MotionMatchingState selectedState;
-		MotionMatching.Gameplay.Transition selectedTransition;
-
-		// Portal node stuff
-		string portalFindingName = "";
-		int selectedPortalStateIndex = -1;
-		List<string> stateNames = new List<string>();
-
-		ReorderableList transitionList;
-
-		float descriptionWidth = 150f;
-		//float margin = 10f;
-
-		// Transition stuff
-		ReorderableList transitionOptionsList;
-		ReorderableList boolConditions;
-		ReorderableList triggerConditions;
-		ReorderableList intConditions;
-		ReorderableList floatConditions;
-
-		TransitionOptions selectedTransitionOption = null;
-
-		// consts
-		const float HORIZONTAL_MARGIN = 10;
-		const float VERTICAL_MARGIN = 10;
-
-		public void SetNeededReferences(
-			MM_AnimatorController animator,
-			MotionMatchingLayer layer,
-			MotionMatchingNode node,
-			 MotionMatching.Gameplay.Transition transition
-			)
+		public MotionMatchingLayer_SO SelectedLayer
 		{
-			this.animator = animator;
-			if (layer != null)
+			get
 			{
-				if (selectedLayer != layer)
-				{
-					selectedNode = null;
-					selectedState = null;
-					selectedTransition = null;
-				}
-				selectedLayer = layer;
-				selectedNode = node;
-				if (selectedNode != null && selectedNode.stateIndex >= 0 && selectedNode.stateIndex < selectedLayer.states.Count)
-				{
-					if (selectedState == null)
-					{
-						transitionList = new ReorderableList(
-							selectedLayer.states[selectedNode.stateIndex].Transitions,
-							typeof(MotionMatching.Gameplay.Transition),
-							true,
-							true,
-							false,
-							false
-							);
-					}
-					else if (selectedState.Index != selectedNode.stateIndex)
-					{
-						transitionList = new ReorderableList(
-							selectedLayer.states[selectedNode.stateIndex].Transitions,
-							typeof(MotionMatching.Gameplay.Transition),
-							true,
-							true,
-							false,
-							false
-							);
-					}
-
-					selectedState = selectedLayer.states[selectedNode.stateIndex];
-				}
-				else
-				{
-					selectedState = null;
-				}
-				if (selectedTransition == null && transition != null)
-				{
-					selectedTransition = transition;
-					transitionOptionsList = new ReorderableList(selectedTransition.options, typeof(TransitionOptions));
-				}
-				else if (transition != selectedTransition && transition != null)
-				{
-					selectedTransition = transition;
-					transitionOptionsList = new ReorderableList(selectedTransition.options, typeof(TransitionOptions));
-				}
-				else if (transition == null)
-				{
-					selectedTransition = null;
-				}
-			}
-			else
-			{
-				selectedLayer = null;
-				selectedNode = null;
-				selectedState = null;
-				selectedTransition = null;
+				if (Animator == null) return null;
+				return Animator.SelectedLayer;
 			}
 		}
 
-		public void Draw()
+		private State_SO selectedStateBuffor = null;
+		public State_SO SelectedState
 		{
-			if (selectedState != null && selectedNode.nodeType != MotionMatchingNodeType.Portal)
+			get => Animator.SelectedState;
+		}
+
+
+		private MotionMatching.Gameplay.Transition transitionBuffor;
+		public MotionMatching.Gameplay.Transition SelectedTransition
+		{
+			get => Editor.graphMenu.SelectedTransition;
+		}
+
+		private PortalToState portalBuffor = null;
+		public PortalToState SelectedPortal
+		{
+			get => Editor.graphMenu.SelectedPortal;
+		}
+
+		const float VerticalMargin = 5f;
+		const float HorizontalMargin = 10f;
+		Vector2 scroll;
+
+		HeaderStyle headerStyle = new HeaderStyle(23f, new Color(120f / 255f, 120f / 255f, 120f / 255f));
+
+		private void DrawHeader(string headerText)
+		{
+			GUILayout.Label(headerText, headerStyle.Style);
+		}
+
+		public override void PerfomrOnGUI(Event e)
+		{
+			Rect areaRect = MMGUIUtility.MakeMargins(Position, 7.5f, 3f, 0f, 0f);
+
+			GUILayout.BeginArea(areaRect);
+			{
+				OnGUI(e);
+			}
+			GUILayout.EndArea();
+
+		}
+
+		public override void OnEnable()
+		{
+
+		}
+
+		public override void OnChangeAnimatorAsset()
+		{
+
+		}
+
+		protected override void OnGUI(Event e)
+		{
+			if (Animator == null) return;
+
+			OnChangeSelectionCallbacks();
+
+			if (SelectedState != null)
 			{
 				DrawStateOptions();
 			}
-			else if (selectedNode != null)
+			else if (SelectedTransition != null)
 			{
-				GUILayout.Space(5);
-				GUILayout.Label("Portal node state selection", GUIResources.GetDarkHeaderStyle_MD());
-				GUILayout.Space(5);
-				DrawPortal();
+				DrawTransition();
 			}
-			else if (selectedTransition != null)
+			else if (SelectedPortal != null)
 			{
-				DrawTransitionOption();
+				PortalOnGUI(e);
 			}
 			else
 			{
-				GUILayout.Space(5);
-				GUILayout.Label("Nothing is selected", GUIResources.GetDarkHeaderStyle_MD());
+				DrawNothingSelected();
 			}
+
 		}
 
-		#region State drawing
+
+		protected void OnChangeSelectionCallbacks()
+		{
+			OnChangeSelectedState();
+
+			OnTransitionChange();
+		}
+
+		#region State gui:
+		ReorderableList transitionList;
+
+		private void OnChangeSelectedState()
+		{
+			if (selectedStateBuffor == SelectedState)
+			{
+				return;
+			}
+
+			GUI.FocusControl(null);
+
+			selectedStateBuffor = SelectedState;
+			if (SelectedState == null) return;
+
+
+			if (SelectedState.Transitions == null) SelectedState.Transitions = new List<Gameplay.Transition>();
+			transitionList = new ReorderableList(SelectedState.Transitions, typeof(MotionMatching.Gameplay.Transition), true, false, false, false);
+		}
+
 		private void DrawStateOptions()
 		{
-			DrawCommonFeatures();
-			switch (selectedState.stateType)
+			GUILayout.Space(VerticalMargin);
+			DrawHeader(SelectedState.StateType.ToString());
+
+			scroll = GUILayout.BeginScrollView(scroll);
 			{
-				case MotionMatchingStateType.MotionMatching:
-					DrawMotionMatchingFeataures();
-					break;
-				case MotionMatchingStateType.SingleAnimation:
-					DrawSingleAnimationFeatures();
-					break;
-				case MotionMatchingStateType.ContactAnimationState:
-					DrawContactStateFeatures();
-					break;
+				DrawCommonFeatures();
+				switch (SelectedState.StateType)
+				{
+					case MotionMatchingStateType.MotionMatching:
+						{
+							MotionMatchingState_SO s = SelectedState as MotionMatchingState_SO;
+
+							if (s.Features == null) s.Features = new MotionMatchingStateFeatures();
+
+							DrawMotionMatchingFeataures(s.Features);
+						}
+						break;
+					case MotionMatchingStateType.SingleAnimation:
+						{
+							SingleAnimationState_SO s = SelectedState as SingleAnimationState_SO;
+
+							if (s.Features == null) s.Features = new SingleAnimationStateFeatures();
+
+							DrawSingleAnimationFeatures(s.Features);
+						}
+						break;
+					case MotionMatchingStateType.ContactAnimationState:
+						{
+							ContactState_SO s = SelectedState as ContactState_SO;
+
+							if (s.Features == null) s.Features = new ContactStateFeatures();
+
+							DrawContactStateFeatures(s.Features);
+						}
+						break;
+				}
+
+				GUILayout.BeginVertical();
+				{
+					DrawHeader("Transition List");
+					GUILayout.Space(VerticalMargin);
+					HandleTranistionList(transitionList, SelectedState.Transitions);
+					transitionList.DoLayoutList();
+				}
+				GUILayout.EndVertical();
+
 			}
-
-
-
-			GUILayoutElements.DrawHeader(
-						"Transition List",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
-
-			if (transitionList == null)
-			{
-				transitionList = new ReorderableList(selectedState.Transitions, typeof(MotionMatching.Gameplay.Transition), true, true, false, false);
-			}
-			if (transitionList != null)
-			{
-				HandleTranistionList(transitionList, selectedState.Transitions);
-				transitionList.DoLayoutList();
-			}
+			GUILayout.EndScrollView();
 		}
 
 		private void DrawCommonFeatures()
 		{
-			GUILayoutElements.DrawHeader(
-				selectedState.stateType.ToString(),
-				GUIResources.GetDarkHeaderStyle_MD()
-				);
-
 			#region Common options
 			GUILayout.BeginHorizontal();
 			{
-				GUILayout.Space(10);
+				GUILayout.Space(HorizontalMargin);
 				EditorGUILayout.LabelField("Name", GUILayout.Width(descriptionWidth));
 
-				string stateName = selectedState.Name;
-				stateName = EditorGUILayout.TextField(selectedState.Name);
+				string stateName = EditorGUILayout.TextField(SelectedState.Name);
 
-				stateName = selectedLayer.MakeStateNameUnique(stateName, selectedState.Index);
-
-				selectedState.Name = stateName;
-			}
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-			{
-				GUILayout.Space(10);
-				EditorGUILayout.LabelField("Tag", GUILayout.Width(descriptionWidth));
-				selectedState.Tag = (MotionMatchingStateTag)EditorGUILayout.EnumPopup(selectedState.Tag);
-			}
-			GUILayout.EndHorizontal();
-			GUILayout.Space(10);
-			GUILayout.BeginHorizontal();
-			GUILayout.Space(10);
-			EditorGUILayout.LabelField("Speed multiplayer", GUILayout.Width(descriptionWidth));
-			selectedState.SpeedMultiplier = EditorGUILayout.FloatField(selectedState.SpeedMultiplier);
-			GUILayout.EndHorizontal();
-
-
-			if (selectedNode.nodeType == MotionMatchingNodeType.State)
-			{
-				if (selectedLayer.startStateIndex == selectedState.Index)
+				if (stateName != SelectedState.Name)
 				{
-					GUILayoutElements.DrawHeader(
-						"Start state option",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
+					stateName = SelectedLayer.MakeStateNameUniqueForState(SelectedState, stateName);
+					SelectedState.Name = stateName;
+				}
+			}
+			GUILayout.EndHorizontal();
 
-					NativeMotionGroup motionGroup = selectedState.MotionData;
+			GUILayout.BeginHorizontal();
+			{
+				GUILayout.Space(HorizontalMargin);
+				EditorGUILayout.LabelField("Tag", GUILayout.Width(descriptionWidth));
+				SelectedState.Tag = (MotionMatchingStateTag)EditorGUILayout.EnumPopup(SelectedState.Tag);
+			}
+			GUILayout.EndHorizontal();
 
-					if (motionGroup != null)
+			GUILayout.Space(VerticalMargin);
+
+			GUILayout.BeginHorizontal();
+			{
+				GUILayout.Space(HorizontalMargin);
+				EditorGUILayout.LabelField("Speed multiplayer", GUILayout.Width(descriptionWidth));
+				SelectedState.SpeedMultiplier = EditorGUILayout.FloatField(SelectedState.SpeedMultiplier);
+			}
+			GUILayout.EndHorizontal();
+
+
+			if (SelectedLayer.GetStartState() == SelectedState)
+			{
+				DrawHeader("Start state option");
+
+				NativeMotionGroup motionGroup = SelectedState.MotionData;
+
+				if (motionGroup != null)
+				{
+					List<string> clipNames = new List<string>(motionGroup.AnimationData.Count);
+					for (int i = 0; i < motionGroup.AnimationData.Count; i++)
 					{
-						List<string> clipNames = new List<string>(motionGroup.AnimationData.Count);
-						for (int i = 0; i < motionGroup.AnimationData.Count; i++)
-						{
-							clipNames.Add(motionGroup.AnimationData[i].name);
-						}
+						clipNames.Add(motionGroup.AnimationData[i].name);
+					}
 
+					GUILayout.BeginHorizontal();
+					{
+						GUILayout.Space(10);
+						GUILayout.Label("Start clip index", GUILayout.Width(descriptionWidth));
+						//selectedLayer.StartClipIndex = EditorGUILayout.IntSlider(
+						//	selectedLayer.StartClipIndex,
+						//	0,
+						//	motionGroup.AnimationData.Count != 0 ? motionGroup.AnimationData.Count - 1 : 0
+						//	);
+
+						SelectedLayer.StartStateData.StartClipIndex = EditorGUILayout.Popup(
+							SelectedLayer.StartStateData.StartClipIndex,
+							clipNames.ToArray()
+							);
+					}
+					GUILayout.EndHorizontal();
+
+					if (motionGroup.AnimationData.Count > 0 && SelectedLayer.StartStateData.StartClipIndex < motionGroup.AnimationData.Count &&
+						motionGroup.AnimationData[SelectedLayer.StartStateData.StartClipIndex] != null)
+					{
 						GUILayout.BeginHorizontal();
 						{
 							GUILayout.Space(10);
-							GUILayout.Label("Start clip index", GUILayout.Width(descriptionWidth));
-							//selectedLayer.StartClipIndex = EditorGUILayout.IntSlider(
-							//	selectedLayer.StartClipIndex,
-							//	0,
-							//	motionGroup.AnimationData.Count != 0 ? motionGroup.AnimationData.Count - 1 : 0
-							//	);
-
-							selectedLayer.StartClipIndex = EditorGUILayout.Popup(
-								selectedLayer.StartClipIndex,
-								clipNames.ToArray()
+							GUILayout.Label("Start clip time", GUILayout.Width(descriptionWidth));
+							SelectedLayer.StartStateData.StartClipTime = EditorGUILayout.Slider(
+								SelectedLayer.StartStateData.StartClipTime,
+								0f,
+								SelectedState.MotionData.AnimationData[SelectedLayer.StartStateData.StartClipIndex].animationLength
 								);
 						}
 						GUILayout.EndHorizontal();
-
-						if (motionGroup.AnimationData.Count > 0 && selectedLayer.StartClipIndex < motionGroup.AnimationData.Count &&
-							motionGroup.AnimationData[selectedLayer.StartClipIndex] != null)
-						{
-							GUILayout.BeginHorizontal();
-							{
-								GUILayout.Space(10);
-								GUILayout.Label("Start clip time", GUILayout.Width(descriptionWidth));
-								selectedLayer.StartClipTime = EditorGUILayout.Slider(
-									selectedLayer.StartClipTime,
-									0f,
-									selectedState.MotionData.AnimationData[selectedLayer.StartClipIndex].animationLength
-									);
-							}
-							GUILayout.EndHorizontal();
-						}
 					}
-					else
-					{
-						GUILayout.Space(10f);
-					}
+				}
+				else
+				{
+					GUILayout.Label("Motion data is null!");
 				}
 			}
 
 			DrawTrajectoryOptions();
 
-			GUILayout.Space(5);
+			GUILayout.Space(VerticalMargin);
 
-			GUILayoutElements.DrawHeader(
-				   "Animation data",
-				   // GUIResources.GetLightHeaderStyle_MD(),
-				   GUIResources.GetDarkHeaderStyle_MD()//,
-													   //ref selectedState.animDataFold
-				   );
 
-			if (/*selectedState.animDataFold*/ true)
+			DrawHeader("Animation data");
+			GUILayout.Space(VerticalMargin);
+			GUILayout.BeginHorizontal();
 			{
-				GUILayout.Space(5);
-				GUILayout.BeginHorizontal();
-				{
-					selectedState.MotionData = (NativeMotionGroup)EditorGUILayout.ObjectField(
-						selectedState.MotionData,
-						typeof(NativeMotionGroup),
-						false
-						);
-				}
-				GUILayout.EndHorizontal();
-
-				if (selectedState.MotionData != null)
-				{
-					DrawMotionGroupAnimationDataInfo(selectedState.MotionData);
-				}
+				SelectedState.MotionData = (NativeMotionGroup)EditorGUILayout.ObjectField(
+					SelectedState.MotionData,
+					typeof(NativeMotionGroup),
+					false
+					);
 			}
-			GUILayout.Space(5);
+			GUILayout.EndHorizontal();
+
+			if (SelectedState.MotionData != null)
+			{
+				DrawMotionGroupAnimationDataInfo(SelectedState.MotionData);
+			}
+
+			GUILayout.Space(VerticalMargin);
+
 			if (GUILayout.Button("Update Motion Groups", GUIResources.Button_MD()))
 			{
-				selectedState.UpadateMotionGroups();
+				SelectedState.UpadateMotionGroups();
 			}
-			GUILayout.Space(2);
+			GUILayout.Space(VerticalMargin);
 
 			#endregion
 		}
 
 		private void DrawTrajectoryOptions()
 		{
-			if (selectedState.stateType != MotionMatchingStateType.ContactAnimationState)
+			if (SelectedState.StateType != MotionMatchingStateType.ContactAnimationState)
 			{
-				GUILayoutElements.DrawHeader(
-						"Trajectory correction",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
+				DrawHeader("Trajectory correction");
 
 				GUILayout.BeginHorizontal();
-				GUILayout.Space(10);
-				selectedState.TrajectoryCorrection = EditorGUILayout.Toggle(new GUIContent("Trajectory correction"), selectedState.TrajectoryCorrection);
+				{
+					GUILayout.Space(HorizontalMargin);
+					SelectedState.TrajectoryCorrection = EditorGUILayout.Toggle(new GUIContent("Trajectory correction"), SelectedState.TrajectoryCorrection);
+				}
 				GUILayout.EndHorizontal();
 			}
 			else
 			{
-				GUILayout.Space(5);
+				GUILayout.Space(VerticalMargin);
 			}
 		}
 
@@ -346,7 +340,7 @@ namespace MotionMatching.Tools
 
 			GUILayout.BeginHorizontal();
 			{
-				GUILayout.Space(10);
+				GUILayout.Space(HorizontalMargin);
 				// Descriptions
 				GUILayout.BeginVertical();
 				{
@@ -373,14 +367,9 @@ namespace MotionMatching.Tools
 			GUILayout.EndHorizontal();
 		}
 
-		private void DrawMotionMatchingFeataures()
+		private void DrawMotionMatchingFeataures(MotionMatchingStateFeatures features)
 		{
-			MotionMatchingStateFeatures features = selectedLayer.m_MotionMatchingStateFeatures[selectedState.StateFeaturesIndex];
-
-			GUILayoutElements.DrawHeader(
-						"Motion Matching state features:",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
+			DrawHeader("Motion Matching state features:");
 
 
 			GUILayout.BeginHorizontal();
@@ -424,18 +413,13 @@ namespace MotionMatching.Tools
 			GUILayout.EndHorizontal();
 		}
 
-		private void DrawSingleAnimationFeatures()
+		private void DrawSingleAnimationFeatures(SingleAnimationStateFeatures features)
 		{
-			SingleAnimationStateFeatures features = selectedLayer.m_SingleAnimationStateFeatures[selectedState.StateFeaturesIndex];
-			GUILayoutElements.DrawHeader(
-						"Single Animation state features:",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
+			DrawHeader("Single Animation state features:");
 
 			GUILayout.BeginHorizontal();
 			{
-				GUILayout.Space(HORIZONTAL_MARGIN);
-				//GUILayout.Label("Loop", GUILayout.Width(descriptionWidth));
+				GUILayout.Space(HorizontalMargin);
 				features.AnimationFindingType = (SingleAnimationFindingType)EditorGUILayout.EnumPopup(new GUIContent("Finding type"), features.AnimationFindingType);
 			}
 			GUILayout.EndHorizontal();
@@ -449,9 +433,9 @@ namespace MotionMatching.Tools
 					break;
 				case SingleAnimationFindingType.FindInSpecificAnimation:
 					{
-						if (selectedState.MotionData != null)
+						if (SelectedState.MotionData != null)
 						{
-							NativeMotionGroup motionGroup = selectedState.MotionData;
+							NativeMotionGroup motionGroup = SelectedState.MotionData;
 
 							string[] animationList = new string[motionGroup.AnimationData.Count];
 							for (int i = 0; i < motionGroup.AnimationData.Count; i++)
@@ -468,7 +452,7 @@ namespace MotionMatching.Tools
 
 							GUILayout.BeginHorizontal();
 							{
-								GUILayout.Space(2f * HORIZONTAL_MARGIN);
+								GUILayout.Space(2f * HorizontalMargin);
 								features.AnimationIndexToFind = EditorGUILayout.Popup(
 									new GUIContent("Animation to find"),
 									features.AnimationIndexToFind,
@@ -483,7 +467,7 @@ namespace MotionMatching.Tools
 
 			GUILayout.BeginHorizontal();
 			{
-				GUILayout.Space(HORIZONTAL_MARGIN);
+				GUILayout.Space(HorizontalMargin);
 				//GUILayout.Label("Loop", GUILayout.Width(descriptionWidth));
 				features.loop = EditorGUILayout.Toggle(new GUIContent("Loop"), features.loop);
 			}
@@ -493,7 +477,7 @@ namespace MotionMatching.Tools
 			{
 				GUILayout.BeginHorizontal();
 				{
-					GUILayout.Space(HORIZONTAL_MARGIN);
+					GUILayout.Space(HorizontalMargin);
 					//GUILayout.Label("Loop count before stop", GUILayout.Width(descriptionWidth));
 					features.loopCountBeforeStop = Mathf.Clamp(
 						EditorGUILayout.IntField(new GUIContent("Loops count before stop"), features.loopCountBeforeStop),
@@ -506,7 +490,7 @@ namespace MotionMatching.Tools
 
 			GUILayout.BeginHorizontal();
 			{
-				GUILayout.Space(HORIZONTAL_MARGIN);
+				GUILayout.Space(HorizontalMargin);
 				//GUILayout.Label("Loop", GUILayout.Width(descriptionWidth));
 				features.updateType = (SingleAnimationUpdateType)EditorGUILayout.EnumPopup(new GUIContent("Update type"), features.updateType);
 			}
@@ -516,7 +500,7 @@ namespace MotionMatching.Tools
 			{
 				GUILayout.BeginHorizontal();
 				{
-					GUILayout.Space(HORIZONTAL_MARGIN);
+					GUILayout.Space(HorizontalMargin);
 					//GUILayout.Label("Loop", GUILayout.Width(descriptionWidth));
 					features.blendTime = EditorGUILayout.FloatField(new GUIContent("Blend time"), features.blendTime);
 				}
@@ -541,94 +525,15 @@ namespace MotionMatching.Tools
 
 		}
 
-		private void DrawContactStateFeatures()
+		private void DrawContactStateFeatures(ContactStateFeatures csFeatures)
 		{
-			GUILayoutElements.DrawHeader(
-						"Contact state features:",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
+			DrawHeader("Contact state features:");
 
-			ContactStateFeatures csFeatures = selectedLayer.m_ContactStateFeatures[selectedState.StateFeaturesIndex];
-
-			csFeatures.DrawEditorGUI(selectedState.MotionData);
+			csFeatures.DrawEditorGUI(SelectedState.MotionData);
 		}
 
 		private void DrawImpactStateFeatures(ContactStateFeatures features)
 		{
-
-		}
-
-		private void DrawPortal()
-		{
-			GUILayout.BeginHorizontal();
-			portalFindingName = EditorGUILayout.TextField("State name", portalFindingName);
-			GUILayout.EndHorizontal();
-			GUILayout.Space(5);
-			if (stateNames == null)
-			{
-				stateNames = new List<string>();
-			}
-			stateNames.Clear();
-			foreach (MotionMatchingState s in selectedLayer.states)
-			{
-				if (s.stateType == MotionMatchingStateType.ContactAnimationState)
-				{
-					continue;
-				}
-				bool goToNextState = false;
-				foreach (MotionMatching.Gameplay.Transition t in s.Transitions)
-				{
-					if (t.nodeID == selectedNode.ID)
-					{
-						goToNextState = true;
-						break;
-					}
-				}
-				if (goToNextState) { continue; }
-
-				if (portalFindingName != "")
-				{
-					if (s.Name.Contains(portalFindingName))
-					{
-						stateNames.Add(s.Name);
-					}
-				}
-				else
-				{
-					stateNames.Add(s.Name);
-				}
-			}
-
-			if (selectedNode.stateIndex >= 0 && selectedNode.stateIndex < selectedLayer.states.Count)
-			{
-				for (int i = 0; i < stateNames.Count; i++)
-				{
-					if (stateNames[i] == selectedLayer.states[selectedNode.stateIndex].Name)
-					{
-						selectedPortalStateIndex = i;
-						break;
-					}
-				}
-			}
-			else
-			{
-				selectedPortalStateIndex = selectedNode.stateIndex;
-			}
-
-			selectedPortalStateIndex = GUILayout.SelectionGrid(
-				selectedPortalStateIndex,
-				stateNames.ToArray(),
-				1
-				);
-			if (selectedPortalStateIndex >= 0 && selectedPortalStateIndex < stateNames.Count)
-			{
-				int newPortalStateIndex = selectedLayer.GetStateIndexEditorOnly(stateNames[selectedPortalStateIndex]);
-
-				if (selectedNode.stateIndex != newPortalStateIndex)
-				{
-					selectedLayer.SetPortalState2(selectedNode.ID, newPortalStateIndex);
-				}
-			}
 
 		}
 
@@ -641,9 +546,9 @@ namespace MotionMatching.Tools
 
 			list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
 			{
-				string transitionString = selectedState.Name + "  ->  ";
+				string transitionString = SelectedState.Name + "  ->  ";
 
-				transitionString += selectedLayer.states[tList[index].nextStateIndex].Name;
+				transitionString += SelectedLayer.States[tList[index].nextStateIndex].Name;
 
 				Rect newRect = rect;
 				newRect.height = 0.8f * rect.height;
@@ -653,102 +558,150 @@ namespace MotionMatching.Tools
 			};
 		}
 
+
 		#endregion
 
+		#region Transition gui:
+		float descriptionWidth = 150f;
 
-		#region Transition Drawing
-		private void DrawTransitionOption()
+		//float margin = 10f;
+
+		// Transition stuff
+
+		ReorderableList transitionOptionsList;
+		ReorderableList boolConditions;
+		ReorderableList triggerConditions;
+		ReorderableList intConditions;
+		ReorderableList floatConditions;
+
+		TransitionOptions selectedOptionBuffor = null;
+		TransitionOptions SelectedOption = null;
+
+
+
+		private void OnTransitionChange()
 		{
-			if (selectedTransition == null)
-			{
-				return;
-			}
-			#region Common transition options
-			string transitionDest = selectedLayer.GetStateName(selectedTransition.fromStateIndex) + " -> " + selectedLayer.GetStateName(selectedTransition.nextStateIndex);
+			if (transitionBuffor == SelectedTransition) return;
 
-			GUILayoutElements.DrawHeader(
-						transitionDest,
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
-			GUILayout.Space(5);
+			transitionBuffor = SelectedTransition;
+			SelectedOption = null;
+
+			GUI.FocusControl(null);
+
+			if (SelectedTransition == null) return;
+
+			if (SelectedTransition.options == null) SelectedTransition.options = new List<TransitionOptions>();
+			transitionOptionsList = new ReorderableList(SelectedTransition.options, typeof(TransitionOptions), true, false, true, true);
+
+			if (SelectedTransition.options.Count > 0)
+			{
+				SelectedOption = SelectedTransition.options[0];
+			}
+		}
+
+		private void OnTransitionOptionChange()
+		{
+			if (selectedOptionBuffor == SelectedOption) return;
+
+			GUI.FocusControl(null);
+
+			selectedOptionBuffor = SelectedOption;
+
+			if (SelectedOption == null) return;
+
+
+			if (SelectedOption.boolConditions == null) SelectedOption.boolConditions = new List<ConditionBool>();
+			boolConditions = new ReorderableList(SelectedOption.boolConditions, typeof(ConditionBool), true, true, true, true);
+
+			if (SelectedOption.TriggerConditions == null) SelectedOption.TriggerConditions = new List<ConditionTrigger>();
+			triggerConditions = new ReorderableList(SelectedOption.TriggerConditions, typeof(ConditionTrigger), true, true, true, true);
+
+			if (SelectedOption.intConditions == null) SelectedOption.intConditions = new List<ConditionInt>();
+			intConditions = new ReorderableList(SelectedOption.intConditions, typeof(ConditionInt), true, false, true, true);
+
+			if (SelectedOption.floatConditions == null) SelectedOption.floatConditions = new List<ConditionFloat>();
+			floatConditions = new ReorderableList(SelectedOption.floatConditions, typeof(ConditionFloat), true, false, true, true);
+		}
+
+		private void DrawTransition()
+		{
+			GUILayout.Space(VerticalMargin);
+
+			string transitionDest = SelectedTransition.FromState.Name + " -> " + SelectedTransition.ToState.Name;
+
+			DrawHeader(transitionDest);
+			GUILayout.Space(VerticalMargin);
 
 			//if (transitionOptionsList == null)
 			//{
 			//    transitionOptionsList = new ReorderableList(selectedTransition.options, typeof(TransitionOptions));
 			//}
 
-			if (transitionOptionsList != null)
+			HandleTransitionOptionList(transitionOptionsList, SelectedTransition.options);
+			transitionOptionsList.DoLayoutList();
+
+			int newSelectedOption = Mathf.Clamp(transitionOptionsList.index, 0, SelectedTransition.options.Count);
+			if (newSelectedOption < SelectedTransition.options.Count)
 			{
-				HandleTransitionOptionList(transitionOptionsList, selectedTransition.options);
-				transitionOptionsList.DoLayoutList();
+				SelectedOption = SelectedTransition.options[newSelectedOption];
 			}
 
-			if (!(transitionOptionsList.index >= 0 && transitionOptionsList.index < selectedTransition.options.Count) && selectedTransition.options.Count > 0)
-			{
-				transitionOptionsList.index = 0;
-			}
+			OnTransitionOptionChange();
 
-			#endregion
-
-			if (transitionOptionsList.index >= 0 && transitionOptionsList.index < selectedTransition.options.Count)
+			if (SelectedOption != null)
 			{
-				TransitionOptions option = selectedTransition.options[transitionOptionsList.index];
-				GUILayout.Space(5);
-				GUILayoutElements.DrawHeader(
-						"Common options",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
-				GUILayout.Space(5);
+				GUILayout.Space(VerticalMargin);
+				DrawHeader("Common options");
+				GUILayout.Space(VerticalMargin);
 
 				GUILayout.BeginHorizontal();
-				option.BlendTime = EditorGUILayout.FloatField("Blend time", option.BlendTime);
-				option.BlendTime = Mathf.Clamp(option.BlendTime, 0.00001f, float.MaxValue);
+				{
+					SelectedOption.BlendTime = EditorGUILayout.FloatField("Blend time", SelectedOption.BlendTime);
+					SelectedOption.BlendTime = Mathf.Clamp(SelectedOption.BlendTime, 0.00001f, float.MaxValue);
+				}
 				GUILayout.EndHorizontal();
 
 				// From state Option
-				GUILayoutElements.DrawHeader(
-						"From state options",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
-				GUILayout.Space(5);
+				DrawHeader("From state options");
+				GUILayout.Space(VerticalMargin);
 
-				switch (selectedLayer.GetStateType(selectedTransition.fromStateIndex))
+				switch (SelectedTransition.FromState.StateType)
 				{
 					case MotionMatchingStateType.MotionMatching:
-						DrawTransitionFromMMState(option);
+						{
+							DrawTransitionFromMMState(SelectedOption);
+						}
 						break;
 					case MotionMatchingStateType.SingleAnimation:
-						DrawTransitionFromSAState(option, selectedLayer.states[selectedTransition.fromStateIndex]);
-						break;
 					case MotionMatchingStateType.ContactAnimationState:
-						DrawTransitionFromSAState(option, selectedLayer.states[selectedTransition.fromStateIndex]);
+						{
+							DrawTransitionFromSAState(SelectedOption, SelectedTransition.FromState);
+						}
 						break;
 				}
 				// To state options
-				GUILayoutElements.DrawHeader(
-						"To state options",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
-				GUILayout.Space(5);
+				DrawHeader("To state options");
+				GUILayout.Space(VerticalMargin);
 
-				switch (selectedLayer.GetStateType(selectedTransition.nextStateIndex))
+				switch (SelectedTransition.ToState.StateType)
 				{
 					case MotionMatchingStateType.MotionMatching:
-						DrawTransitionToMMState(option, selectedLayer.states[selectedTransition.nextStateIndex]);
+						{
+							DrawTransitionToMMState(SelectedOption, SelectedTransition.ToState);
+						}
 						break;
 					case MotionMatchingStateType.SingleAnimation:
-						DrawTransitionToSAState(option, selectedLayer.states[selectedTransition.nextStateIndex]);
+						{
+							DrawTransitionToSAState(SelectedOption, SelectedTransition.ToState);
+						}
 						break;
 				}
 
 				// Drawing Condition
-				GUILayoutElements.DrawHeader(
-						"Option Conditions",
-						GUIResources.GetDarkHeaderStyle_MD()
-						);
-				GUILayout.Space(5);
+				DrawHeader("Option Conditions");
+				GUILayout.Space(VerticalMargin);
 
-				DrawCondition(option);
+				DrawCondition(SelectedOption);
 			}
 		}
 
@@ -762,6 +715,7 @@ namespace MotionMatching.Tools
 				newRect.y += (0.1f * rect.height);
 				GUI.Label(newRect, "Transition options (\"From section\" -> \"To section\")");
 			};
+
 			list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
 			{
 				TransitionOptions option = toList[index];
@@ -772,8 +726,8 @@ namespace MotionMatching.Tools
 				newRect.x += (0.05f * rect.width);
 				newRect.y += (0.1f * rect.height);
 
-				MotionMatchingState fromState = selectedLayer.states[selectedTransition.fromStateIndex];
-				MotionMatchingState toState = selectedLayer.states[selectedTransition.nextStateIndex];
+				State_SO fromState = SelectedTransition.FromState;
+				State_SO toState = SelectedTransition.ToState;
 
 
 				string fromSection = "";
@@ -849,9 +803,6 @@ namespace MotionMatching.Tools
 
 				toList.Add(new TransitionOptions(newName));
 
-				MotionMatchingState fromState = selectedLayer.states[selectedTransition.fromStateIndex];
-				MotionMatchingState toState = selectedLayer.states[selectedTransition.nextStateIndex];
-
 				//toList[toList.Count - 1].AddCheckingTransitionOption(fromState);
 				//toList[toList.Count - 1].AddFindigBestPoseOption(toState);
 			};
@@ -862,7 +813,7 @@ namespace MotionMatching.Tools
 
 		}
 
-		private void DrawWarningOnNullMotionGroupInState(MotionMatchingState state)
+		private void DrawWarningOnNullMotionGroupInState(State_SO state)
 		{
 			GUILayout.BeginHorizontal();
 			{
@@ -876,12 +827,12 @@ namespace MotionMatching.Tools
 			GUILayout.Space(5);
 		}
 
-		private void DrawTransitionFromSAState(TransitionOptions option, MotionMatchingState from)
+		private void DrawTransitionFromSAState(TransitionOptions option, State_SO from)
 		{
 			GUILayout.BeginHorizontal();
 			{
 				GUILayout.Label("Transition after first section interval");
-				GUILayout.Space(5f);
+				GUILayout.Space(HorizontalMargin);
 				option.TransitionAfterSectionStart = EditorGUILayout.Toggle(
 					option.TransitionAfterSectionStart
 					);
@@ -898,7 +849,7 @@ namespace MotionMatching.Tools
 						);
 				}
 				GUILayout.EndHorizontal();
-				GUILayout.Space(5);
+				GUILayout.Space(VerticalMargin);
 			}
 
 
@@ -938,7 +889,7 @@ namespace MotionMatching.Tools
 
 		}
 
-		private void DrawTransitionToMMState(TransitionOptions option, MotionMatchingState to)
+		private void DrawTransitionToMMState(TransitionOptions option, State_SO to)
 		{
 			if (to.MotionData == null)
 			{
@@ -1004,7 +955,7 @@ namespace MotionMatching.Tools
 			}
 		}
 
-		private void DrawTransitionToSAState(TransitionOptions option, MotionMatchingState to)
+		private void DrawTransitionToSAState(TransitionOptions option, State_SO to)
 		{
 			if (to.MotionData == null)
 			{
@@ -1077,15 +1028,6 @@ namespace MotionMatching.Tools
 
 		private void DrawCondition(TransitionOptions option)
 		{
-			if (selectedTransitionOption != option)
-			{
-				selectedTransitionOption = option;
-				boolConditions = new ReorderableList(option.boolConditions, typeof(ConditionBool));
-				triggerConditions = new ReorderableList(option.TriggerConditions, typeof(ConditionTrigger));
-				intConditions = new ReorderableList(option.intConditions, typeof(ConditionInt));
-				floatConditions = new ReorderableList(option.floatConditions, typeof(ConditionFloat));
-			}
-
 			HandleBoolConditionList(boolConditions, option);
 			HandleTriggerConditionList(triggerConditions, option);
 			HandleIntConditionList(intConditions, option);
@@ -1110,11 +1052,11 @@ namespace MotionMatching.Tools
 
 			list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
 			{
-				string[] bools = new string[animator.BoolParameters.Count];
+				string[] bools = new string[Animator.BoolParameters.Count];
 
-				for (int i = 0; i < animator.BoolParameters.Count; i++)
+				for (int i = 0; i < Animator.BoolParameters.Count; i++)
 				{
-					bools[i] = animator.BoolParameters[i].Name;
+					bools[i] = Animator.BoolParameters[i].Name;
 				}
 
 				Rect r1 = new Rect(
@@ -1132,7 +1074,7 @@ namespace MotionMatching.Tools
 
 				ConditionBool condition = option.boolConditions[index];
 
-				if (animator.BoolParameters.Count > 0)
+				if (Animator.BoolParameters.Count > 0)
 				{
 					condition.CheckingValueIndex = EditorGUI.Popup(r1, condition.CheckingValueIndex, bools);
 				}
@@ -1166,7 +1108,7 @@ namespace MotionMatching.Tools
 
 			list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
 			{
-				string[] triggers = animator.TriggersNames.ToArray();
+				string[] triggers = Animator.TriggersNames.ToArray();
 
 				Rect r1 = new Rect(
 					rect.x + rect.width * 0.05f,
@@ -1177,7 +1119,7 @@ namespace MotionMatching.Tools
 
 				ConditionTrigger condition = option.TriggerConditions[index];
 
-				if (animator.TriggersNames.Count > 0)
+				if (Animator.TriggersNames.Count > 0)
 				{
 					condition.CheckingValueIndex = EditorGUI.Popup(r1, condition.CheckingValueIndex, triggers);
 				}
@@ -1198,11 +1140,11 @@ namespace MotionMatching.Tools
 
 		private void HandleIntConditionList(ReorderableList list, TransitionOptions option)
 		{
-			string[] ints = new string[animator.IntParamters.Count];
+			string[] ints = new string[Animator.IntParameters.Count];
 
-			for (int i = 0; i < animator.IntParamters.Count; i++)
+			for (int i = 0; i < Animator.IntParameters.Count; i++)
 			{
-				ints[i] = animator.IntParamters[i].Name;
+				ints[i] = Animator.IntParameters[i].Name;
 			}
 
 			list.drawHeaderCallback = (Rect rect) =>
@@ -1250,7 +1192,7 @@ namespace MotionMatching.Tools
 
 				ConditionInt condition = option.intConditions[index];
 
-				if (animator.IntParamters.Count > 0)
+				if (Animator.IntParameters.Count > 0)
 				{
 					condition.CheckingValueIndex = EditorGUI.Popup(r1, condition.CheckingValueIndex, ints);
 				}
@@ -1289,12 +1231,12 @@ namespace MotionMatching.Tools
 
 		private void HandleFloatConditionList(ReorderableList list, TransitionOptions option)
 		{
-			string[] floatNames = new string[animator.FloatParamaters.Count];
+			string[] floatNames = new string[Animator.FloatParamaters.Count];
 
 
-			for (int i = 0; i < animator.FloatParamaters.Count; i++)
+			for (int i = 0; i < Animator.FloatParamaters.Count; i++)
 			{
-				floatNames[i] = animator.FloatParamaters[i].Name;
+				floatNames[i] = Animator.FloatParamaters[i].Name;
 			}
 
 
@@ -1342,7 +1284,7 @@ namespace MotionMatching.Tools
 
 				ConditionFloat condition = option.floatConditions[index];
 
-				if (animator.FloatParamaters.Count > 0)
+				if (Animator.FloatParamaters.Count > 0)
 				{
 					condition.CheckingValueIndex = EditorGUI.Popup(
 						r1,
@@ -1390,7 +1332,170 @@ namespace MotionMatching.Tools
 				option.floatConditions.Add(new ConditionFloat());
 			};
 		}
+
 		#endregion
+
+		#region Portal gui:
+		SearchField m_SerachStateForPortalState;
+		SearchField PortalSearchField
+		{
+			get
+			{
+				if (m_SerachStateForPortalState == null)
+				{
+					m_SerachStateForPortalState = new SearchField();
+				}
+				return m_SerachStateForPortalState;
+			}
+		}
+
+		string searchPortalStateValue = "";
+
+		OnePixelColorTexture SelectedStateForPortalTexture = new OnePixelColorTexture(0, 132, 255, 80);
+
+		private void OnSelectedPortalChange()
+		{
+			if (portalBuffor == SelectedPortal) return;
+
+			GUI.FocusControl(null);
+
+			portalBuffor = SelectedPortal;
+
+			if (SelectedPortal == null) return;
+
+		}
+
+		private void PortalOnGUI(Event e)
+		{
+
+			GUILayout.BeginVertical();
+			{
+				GUILayout.Space(VerticalMargin);
+				string header = "Portal: \"{0}\"";
+
+				if (SelectedPortal.State != null)
+				{
+					DrawHeader(string.Format(header, SelectedPortal.State.Name));
+				}
+				else
+				{
+					DrawHeader(string.Format(header, "Empty"));
+				}
+
+				GUILayout.Space(VerticalMargin);
+
+				GUILayout.BeginHorizontal();
+				{
+					GUILayout.Label("Search state:", GUILayout.Width(80f));
+					searchPortalStateValue = PortalSearchField.OnToolbarGUI(searchPortalStateValue);
+				}
+				GUILayout.EndHorizontal();
+
+				GUILayout.Space(VerticalMargin / 2f);
+
+				DrawStatesToSelect();
+			}
+			GUILayout.EndVertical();
+		}
+
+		private void DrawStatesToSelect()
+		{
+			if (SelectedLayer.States == null || SelectedLayer.States.Count == 0) return;
+
+			scroll = GUILayout.BeginScrollView(scroll);
+			{
+				foreach (var state in SelectedLayer.States)
+				{
+					bool nameFindResult = true;
+
+					if (searchPortalStateValue.Length > 0)
+					{
+						nameFindResult = state.Name.ToLower().Contains(searchPortalStateValue.ToLower());
+					}
+
+					if (state.StateType != MotionMatchingStateType.ContactAnimationState && nameFindResult)
+					{
+						DrawPortalSelectionState(state);
+					}
+				}
+			}
+			GUILayout.EndScrollView();
+		}
+
+		private void DrawPortalSelectionState(State_SO state)
+		{
+
+			bool isStateChanged = false;
+			if (GUILayout.Button(state.Name))
+			{
+				isStateChanged = true;
+			}
+
+			if (isStateChanged)
+			{
+				State_SO oldState = SelectedPortal.State;
+				SelectedPortal.State = state;
+				OnChangePortalState(SelectedPortal, oldState, SelectedPortal.State);
+			}
+
+			Rect lastRect = GUILayoutUtility.GetLastRect();
+
+			if (SelectedPortal.State == state)
+			{
+				GUI.DrawTexture(lastRect, SelectedStateForPortalTexture.Texture);
+			}
+		}
+
+		private void OnChangePortalState(PortalToState portal, State_SO oldState, State_SO newState)
+		{
+		}
+
+		#endregion
+
+		#region Nothing selected
+
+		private void DrawNothingSelected()
+		{
+			GUILayout.BeginVertical();
+			{
+				GUILayout.Space(VerticalMargin);
+				DrawHeader("Nothing selected");
+			}
+			GUILayout.EndVertical();
+		}
+		#endregion
+	}
+
+	public class HeaderStyle
+	{
+		GUIStyle style;
+
+		public GUIStyle Style
+		{
+			get
+			{
+				if (style == null || backgroundTexture.IsTextureNull)
+				{
+					style = new GUIStyle();
+					style.fixedHeight = height;
+					style.normal.background = backgroundTexture.Texture;
+					style.fontSize = Mathf.RoundToInt(height * 0.6f);
+					style.contentOffset = new Vector2(10, (height - style.fontSize * 1.333f) / 2f);
+
+				}
+				return style;
+			}
+		}
+
+		OnePixelColorTexture backgroundTexture;
+
+		float height;
+
+		public HeaderStyle(float height, Color color)
+		{
+			this.height = height;
+			backgroundTexture = new OnePixelColorTexture(color);
+		}
 
 	}
 }

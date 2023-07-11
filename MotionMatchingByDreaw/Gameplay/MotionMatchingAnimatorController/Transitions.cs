@@ -10,16 +10,6 @@ namespace MotionMatching.Gameplay
 	{
 #if UNITY_EDITOR
 		[SerializeField]
-		public bool toPortal;
-		[SerializeField]
-		public int nodeID;
-		[SerializeField]
-		public Rect transitionRect;
-		[SerializeField]
-		public int fromStateIndex;
-
-
-		[SerializeField]
 		public State_SO FromState;
 		[SerializeField]
 		public State_SO ToState;

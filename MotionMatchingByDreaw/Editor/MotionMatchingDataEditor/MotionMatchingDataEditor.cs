@@ -14,12 +14,12 @@ namespace MotionMatching.Tools
 		Dark,
 	}
 
-	public class MotionMatchingDataEditor_New : EditorWindow
+	public class MotionMatchingDataEditor : EditorWindow
 	{
 		[MenuItem("MM Data Editor 2", menuItem = "MotionMatching/Editors/Motion Matching Data Editor", priority = 2)]
 		private static void ShowWindow()
 		{
-			MotionMatchingDataEditor_New editor = EditorWindow.GetWindow<MotionMatchingDataEditor_New>();
+			MotionMatchingDataEditor editor = EditorWindow.GetWindow<MotionMatchingDataEditor>();
 			editor.titleContent = new GUIContent("MM Data Editor");
 			editor.position = new Rect(100, 100, 1000, 300);
 		}
@@ -406,16 +406,16 @@ namespace MotionMatching.Tools
 				return false;
 			}
 
-			if (EditorWindow.HasOpenInstances<MotionMatchingDataEditor_New>())
+			if (EditorWindow.HasOpenInstances<MotionMatchingDataEditor>())
 			{
-				EditorWindow.GetWindow<MotionMatchingDataEditor_New>().EditedData = asset;
-				EditorWindow.GetWindow<MotionMatchingDataEditor_New>().Repaint();
+				EditorWindow.GetWindow<MotionMatchingDataEditor>().EditedData = asset;
+				EditorWindow.GetWindow<MotionMatchingDataEditor>().Repaint();
 				return true;
 			}
 
-			MotionMatchingDataEditor_New.ShowWindow();
-			EditorWindow.GetWindow<MotionMatchingDataEditor_New>().EditedData = asset;
-			EditorWindow.GetWindow<MotionMatchingDataEditor_New>().Repaint();
+			MotionMatchingDataEditor.ShowWindow();
+			EditorWindow.GetWindow<MotionMatchingDataEditor>().EditedData = asset;
+			EditorWindow.GetWindow<MotionMatchingDataEditor>().Repaint();
 
 			return true;
 		}

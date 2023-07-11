@@ -501,202 +501,46 @@ namespace MotionMatching.Gameplay
 		}
 
 
-		public static void CreateFromOldVersion(MM_AnimatorController old)
-		{
-			if (old == null) return;
-
-			MotionMatchingAnimator_SO animator = CreateInstance<MotionMatchingAnimator_SO>();
-			animator.name = old.name + "_New";
-
-
-			string pathToOldAsset = AssetDatabase.GetAssetPath(old);
-			string newAssetPath = pathToOldAsset.Substring(0, pathToOldAsset.Length - old.name.Length - 6);
-			newAssetPath += animator.name + ".asset";
-
-			AssetDatabase.CreateAsset(animator, newAssetPath);
-
-
-			// parameters
-			animator.BoolParameters = new List<BoolParameter>();
-			foreach (var boolP in old.BoolParameters)
-			{
-				animator.BoolParameters.Add(boolP);
-			}
-
-			animator.IntParameters = new List<IntParameter>();
-			foreach (var intP in old.IntParamters)
-			{
-				animator.IntParameters.Add(intP);
-			}
-
-			animator.FloatParamaters = new List<FloatParameter>();
-			foreach (var floatP in old.FloatParamaters)
-			{
-				animator.FloatParamaters.Add(floatP);
-			}
-
-			animator.TriggersNames = new List<string>();
-			foreach (var triggerP in old.TriggersNames)
-			{
-				animator.TriggersNames.Add(triggerP);
-			}
-
-			// secondary layers
-			animator.SecondaryLayers = new List<SecondaryLayerData>();
-
-			for (int sLayerIdx = 0; sLayerIdx < old.SecondaryLayers.Count; sLayerIdx++)
-			{
-				animator.SecondaryLayers.Add(old.SecondaryLayers[sLayerIdx]);
-			}
-
-			// layers
-			animator.Layers = new List<MotionMatchingLayer_SO>();
-
-			for (int layerIndex = 0; layerIndex < old.layers.Count; layerIndex++)
-			{
-				MotionMatchingLayer oldLayer = old.layers[layerIndex];
-				MotionMatchingLayer_SO newLayer = animator.AddLayer(oldLayer.name, null);
-
-				newLayer.PassIK = oldLayer.passIK;
-				newLayer.FootPassIK = oldLayer.footPassIK;
-				newLayer.AvatarMask = oldLayer.avatarMask;
-				newLayer.IsAdditive = oldLayer.isAdditive;
-
-				Dictionary<string, int> oldSequences = new Dictionary<string, int>();
-				for (int sequenceIdx = 0; sequenceIdx < oldLayer.sequences.Count; sequenceIdx++)
-				{
-					oldSequences.Add(oldLayer.sequences[sequenceIdx], sequenceIdx);
-				}
-
-				// sequences:
-				newLayer.Sequences = new List<SequenceDescription>();
-				foreach (var seq in oldLayer.sequences)
-				{
-					newLayer.AddSequence(seq);
-				}
-
-
-				Dictionary<int, MotionMatchingNode> oldNodes = new Dictionary<int, MotionMatchingNode>();
-
-				for (int nodeIdx = 0; nodeIdx < oldLayer.nodes.Count; nodeIdx++)
-				{
-					oldNodes.Add(oldLayer.nodes[nodeIdx].ID, oldLayer.nodes[nodeIdx]);
-				}
-
-
-				newLayer.States = new List<State_SO>();
-
-				// creating states:
-				for (int stateIndex = 0; stateIndex < oldLayer.states.Count; stateIndex++)
-				{
-					MotionMatchingState oldState = oldLayer.states[stateIndex];
-
-					State_SO newState = null;
-
-					switch (oldState.stateType)
-					{
-						case MotionMatchingStateType.MotionMatching:
-							{
-								var mmState = newLayer.AddState<MotionMatchingState_SO>();
-								mmState.Features = oldLayer.m_MotionMatchingStateFeatures[oldState.StateFeaturesIndex];
-
-								newState = mmState;
-							}
-							break;
-						case MotionMatchingStateType.SingleAnimation:
-							{
-								var saState = newLayer.AddState<SingleAnimationState_SO>();
-								saState.Features = oldLayer.m_SingleAnimationStateFeatures[oldState.StateFeaturesIndex];
-
-								newState = saState;
-							}
-							break;
-						case MotionMatchingStateType.ContactAnimationState:
-							{
-								var cState = newLayer.AddState<ContactState_SO>();
-								cState.Features = oldLayer.m_ContactStateFeatures[oldState.StateFeaturesIndex];
-
-								newState = cState;
-							}
-							break;
-					}
-
-					newState.Node = new StateNode(oldNodes[oldState.nodeID].rect.position / 2f);
-					newState.Name = oldState.Name;
-					newState.TrajectoryCorrection = oldState.TrajectoryCorrection;
-					newState.Index = stateIndex;
-					newState.Tag = oldState.Tag;
-					newState.StartSection = oldState.StartSection;
-					newState.MotionData = oldState.MotionData;
-					newState.SpeedMultiplier = oldState.SpeedMultiplier;
-
-					var oldStateSequence = oldNodes[oldState.nodeID].Sequence;
-
-					newState.SequenceID = newLayer.Sequences[oldSequences[oldStateSequence]].ID;
-				}
-
-				// creating portals:
-
-				int portalIndex = 0;
-				Dictionary<int, int> portalsIndexes = new Dictionary<int, int>(); // key id, value index
-				for (int nodeIndex = 0; nodeIndex < oldLayer.nodes.Count; nodeIndex++)
-				{
-					MotionMatchingNode node = oldLayer.nodes[nodeIndex];
-
-					if (node.nodeType != MotionMatchingNodeType.Portal) continue;
-
-					PortalToState portal = newLayer.CreatePortal(node.rect.position / 2f);
-
-					portal.State = newLayer.States[node.stateIndex];
-					portalsIndexes.Add(node.ID, portalIndex);
-					portal.SequenceID = newLayer.Sequences[oldSequences[node.Sequence]].ID;
-
-					portalIndex += 1;
-				}
-
-				// setup start state:
-				newLayer.StartStateData = new StartStateData();
-				newLayer.StartStateData.StartState = newLayer.States[oldLayer.startStateIndex];
-				newLayer.StartStateData.StartClipIndex = oldLayer.StartClipIndex;
-				newLayer.StartStateData.StartClipTime = oldLayer.StartClipTime;
-
-				// creating transition:
-
-				for (int stateIndex = 0; stateIndex < oldLayer.states.Count; stateIndex++)
-				{
-					MotionMatchingState oldState = oldLayer.states[stateIndex];
-					State_SO newState = newLayer.States[stateIndex];
-
-					newState.Transitions = new List<Transition>();
-
-					for (int transitinoIdx = 0; transitinoIdx < oldState.Transitions.Count; transitinoIdx++)
-					{
-						Transition oldTransition = oldState.Transitions[transitinoIdx];
-
-						Transition newTransition = new Transition();
-						newTransition.nextStateIndex = oldTransition.nextStateIndex;
-						newTransition.FromState = newState;
-						newTransition.ToState = newLayer.States[oldTransition.nextStateIndex];
-						if (oldTransition.toPortal)
-						{
-							newTransition.PortalToStateIndex = portalsIndexes[oldTransition.nodeID];
-						}
-
-						foreach (var tOption in oldTransition.options)
-						{
-							newTransition.options.Add(tOption);
-						}
-
-						newState.Transitions.Add(newTransition);
-					}
-				}
-			}
-
-
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-		}
 #endif
 		#endregion
+	}
+
+	[System.Serializable]
+	public struct BoolParameter
+	{
+		public string Name;
+		public bool Value;
+
+		public BoolParameter(string name, bool value)
+		{
+			Name = name;
+			Value = value;
+		}
+	}
+
+	[System.Serializable]
+	public struct IntParameter
+	{
+		public string Name;
+		public int Value;
+
+		public IntParameter(string name, int value)
+		{
+			Name = name;
+			Value = value;
+		}
+	}
+
+	[System.Serializable]
+	public struct FloatParameter
+	{
+		public string Name;
+		public float Value;
+
+		public FloatParameter(string name, float value)
+		{
+			Name = name;
+			Value = value;
+		}
 	}
 }

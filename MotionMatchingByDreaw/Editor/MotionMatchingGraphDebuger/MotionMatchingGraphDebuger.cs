@@ -326,11 +326,4 @@ namespace MotionMatching.Tools
 		}
 
 	}
-
-
-	public class DebugStateInfo
-	{
-		[SerializeField]
-		public MotionMatchingState state;
-	}
 }

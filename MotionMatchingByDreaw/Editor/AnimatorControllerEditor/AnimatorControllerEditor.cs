@@ -1,17 +1,19 @@
 using MotionMatching.Gameplay;
+using System;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEngine;
 
 namespace MotionMatching.Tools
 {
-	public class AnimatorEditor_Vol3 : EditorWindow
+	public class AnimatorControllerEditor : EditorWindow
 	{
 		#region static stuff
 
 		[MenuItem("sda", menuItem = "MotionMatching/Editors/MM Animator Editor", priority = 2000)]
-		private static void CreateWindow()
+		private static void ShowWindow()
 		{
-			AnimatorEditor_Vol3 editor = GetWindow<AnimatorEditor_Vol3>();
+			AnimatorControllerEditor editor = GetWindow<AnimatorControllerEditor>();
 			editor.position = new Rect(new Vector2(100, 100), new Vector2(1280, 720));
 			editor.titleContent = new GUIContent("MM Animator");
 			editor.Show();
@@ -96,12 +98,9 @@ namespace MotionMatching.Tools
 
 		}
 
-
-
-
 		#region Left menu
 		public OnePixelColorTexture LeftMenuTexture { get; private set; } = new OnePixelColorTexture(new Color(0.7f, 0.7f, 0.7f));
-		public AnimatorEditorLeftMenuSpace_Vol3 leftMenu = new AnimatorEditorLeftMenuSpace_Vol3();
+		public AnimatorControllerEditorLeftMenuSpace leftMenu = new AnimatorControllerEditorLeftMenuSpace();
 
 		#endregion
 
@@ -110,17 +109,15 @@ namespace MotionMatching.Tools
 		public OnePixelColorTexture GraphMenuTexture { get; private set; } = new OnePixelColorTexture(new Color(0.4f, 0.4f, 0.4f));
 		public OnePixelColorTexture GraphWireFrameTexture { get; private set; } = new OnePixelColorTexture(new Color(0.5f, 0.5f, 0.5f));
 
-		public AnimatorGraphSpace_Vol3 graphMenu = new AnimatorGraphSpace_Vol3();
+		public AnimatorControllerGraphSpace graphMenu = new AnimatorControllerGraphSpace();
 
 		#endregion
 
 
 		#region Right menu
-		public AnimatorEditorRightSpace_Vol3 rightMenu = new AnimatorEditorRightSpace_Vol3();
+		public AnimatorControllerEditorRightSpace rightMenu = new AnimatorControllerEditorRightSpace();
 
 		public OnePixelColorTexture RightMenuTexture { get; private set; } = new OnePixelColorTexture(new Color(0.7f, 0.7f, 0.7f));
-
-
 
 		public StateNodeTexture NormalStateTexture { get; private set; } = new StateNodeTexture(new Vector2(70, 15), 255, 165, 87);
 		public StateNodeTexture ContactStateTexture { get; private set; } = new StateNodeTexture(new Vector2(70, 15), 117, 209, 102);
@@ -234,7 +231,45 @@ namespace MotionMatching.Tools
 			return 0;
 		}
 
+		public void SetAsset(MotionMatchingAnimator_SO newAnimator)
+		{
+			if (newAnimator != Animator)
+			{
+				Animator = newAnimator;
+				//Editor.Animator = buffor;
 
+				leftMenu.OnChangeAnimatorAsset();
+				graphMenu.OnChangeAnimatorAsset();
+				rightMenu.OnChangeAnimatorAsset();
+			}
+		}
+
+		[OnOpenAsset()]
+		public static bool OnOpenAsset(int instanceID, int line)
+		{
+			MotionMatchingAnimator_SO contr;
+			try
+			{
+				contr = (MotionMatchingAnimator_SO)EditorUtility.InstanceIDToObject(instanceID);
+			}
+			catch (System.Exception)
+			{
+				return false;
+			}
+
+			if (EditorWindow.HasOpenInstances<AnimatorControllerEditor>())
+			{
+				EditorWindow.GetWindow<AnimatorControllerEditor>().SetAsset(contr);
+				EditorWindow.GetWindow<AnimatorControllerEditor>().Repaint();
+				return true;
+			}
+
+			AnimatorControllerEditor.ShowWindow();
+			EditorWindow.GetWindow<AnimatorControllerEditor>().SetAsset(contr);
+			EditorWindow.GetWindow<AnimatorControllerEditor>().Repaint();
+
+			return true;
+		}
 	}
 
 	public class OnePixelColorTexture
