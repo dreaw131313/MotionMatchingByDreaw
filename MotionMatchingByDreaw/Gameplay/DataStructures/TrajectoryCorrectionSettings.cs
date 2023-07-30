@@ -4,40 +4,6 @@ using UnityEngine;
 
 namespace MotionMatching.Gameplay
 {
-	[CreateAssetMenu(fileName = "TrajectoryCorrectionProfile", menuName = "Motion Matching/Trajectory Assets/Trajectory Correction Profile")]
-	public class TrajectoryCorrectionProfiles : ScriptableObject
-	{
-		[SerializeField]
-		public List<CorrectionSettingSet> CorrectionSettings = new List<CorrectionSettingSet>();
-
-		private Dictionary<string, int> settingsIndexes;
-
-
-		public TrajectoryCorrectionSettings GetSettings(string name)
-		{
-			return CorrectionSettings[settingsIndexes[name]].Settings;
-		}
-
-		private void OnEnable()
-		{
-			settingsIndexes = new Dictionary<string, int>(CorrectionSettings.Count);
-
-			for (int i = 0; i < CorrectionSettings.Count; i++)
-			{
-				settingsIndexes.Add(CorrectionSettings[i].Name, i);
-			}
-		}
-	}
-
-	[System.Serializable]
-	public struct CorrectionSettingSet
-	{
-		[SerializeField]
-		public string Name;
-		[SerializeField]
-		public TrajectoryCorrectionSettings Settings;
-	}
-
 	[System.Serializable]
 	public struct TrajectoryCorrectionSettings
 	{

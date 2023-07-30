@@ -16,8 +16,6 @@ namespace MotionMatching.Gameplay
 		[Header("TRAJECTORY OPTIONS")]
 		[SerializeField]
 		public bool CreateTrajectory = true;
-		[SerializeField]
-		private TrajectoryProfile trajectoryProfile;
 
 		[SerializeField]
 		private TrajectoryCreationSettings creationSettings;
@@ -294,72 +292,12 @@ namespace MotionMatching.Gameplay
 			this.motionMatchingComponent = motionMatching;
 		}
 
-		//public TrajectoryPoint[] GetCurrentTrajectory()
-		//{
-		//	return collisionTrajectory;
-		//}
-
-		//public ref TrajectoryPoint[] GetCurrentTrajectoryRefernece()
-		//{
-		//	return ref collisionTrajectory;
-		//}
-
 		public void SetTrajectorySettings(TrajectoryCreationSettings settings)
 		{
 			SetCreationType(settings.CreationType);
 			OnPastTrajectoryTypeChange(settings.PastTrajectoryCreationType);
 			creationSettings = settings;
 			OnTrajectoryCreationSettingsChange();
-		}
-
-		public bool SetTrajectoryProfile(string profileName)
-		{
-			if (trajectoryProfile == null)
-			{
-				return false;
-			}
-
-			SetTrajectorySettings(trajectoryProfile.GetSettings(profileName));
-			return true;
-		}
-
-		public void SelectBestProfileBasedOnVelocity(ref List<string> profilesNames, float velocity)
-		{
-
-#if UNITY_EDITOR
-			if (trajectoryProfile.trajectorySettings.Count == 0)
-			{
-				throw new System.Exception($"Trajectory Profile \"{this.name}\" does not have any trajectory settings!");
-			}
-#endif
-
-			float delta = float.MaxValue;
-			int settingsIndex = 0;
-			for (int i = 0; i < profilesNames.Count; i++)
-			{
-				TrajectoryCreationSettings tcs = trajectoryProfile.GetSettings(profilesNames[i]);
-				float currentDelta = Mathf.Abs(velocity - tcs.MaxSpeed);
-				if (currentDelta < delta)
-				{
-					delta = currentDelta;
-					settingsIndex = i;
-				}
-			}
-
-			SetTrajectoryProfile(profilesNames[settingsIndex]);
-		}
-
-		public void SelectBestProfileBasedOnVelocity(float velocity)
-		{
-
-#if UNITY_EDITOR
-			if (trajectoryProfile.trajectorySettings.Count == 0)
-			{
-				throw new System.Exception($"Trajectory Profile \"{this.name}\" does not have any trajectory settings!");
-			}
-#endif
-
-			SetTrajectorySettings(trajectoryProfile.GetBestSettingsBasedOnVelocity(velocity));
 		}
 
 		public void SetZeroTrajectory()
@@ -740,7 +678,6 @@ namespace MotionMatching.Gameplay
 
 			float3 lastPositionDelta = objectPosition - objectPositionBuffor;
 			objectPositionBuffor = objectPosition;
-
 
 			float3 pointLastdelta = float3.zero;
 			float deltaTime = Time.deltaTime;

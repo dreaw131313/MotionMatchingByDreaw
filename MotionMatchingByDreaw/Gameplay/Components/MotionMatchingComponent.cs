@@ -70,8 +70,6 @@ namespace MotionMatching.Gameplay
 		//[Header("Trajectory correction:")]
 		[SerializeField]
 		private TrajectoryCorrectionSettings trajectoryCorrection;
-		[SerializeField]
-		private TrajectoryCorrectionProfiles trajectoryCorrectionProfiles;
 
 
 		// Events
@@ -3385,19 +3383,6 @@ namespace MotionMatching.Gameplay
 		public void SetAnimationSpeedMultiplier(float speedMultiplier, int layerIndex = 0)
 		{
 			animationSystem.SetSpeed(speedMultiplier, layerIndex);
-		}
-
-		public bool SetTrajectoryCorrectionProfile(string name)
-		{
-			if (trajectoryCorrectionProfiles == null)
-			{
-				return false;
-			}
-
-			trajectoryCorrection = trajectoryCorrectionProfiles.GetSettings(name);
-			testedSquareSpeed = trajectoryCorrection.MinSpeedToPerformCorrection * trajectoryCorrection.MinSpeedToPerformCorrection;
-
-			return true;
 		}
 
 		public void SetTrajectoryCorrectionSettings(TrajectoryCorrectionSettings settings)
