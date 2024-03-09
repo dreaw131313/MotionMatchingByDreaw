@@ -1,6 +1,7 @@
 using MotionMatching.Gameplay;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 
 namespace MotionMatching
@@ -49,6 +50,31 @@ namespace MotionMatching
 				return true;
 			}
 
+			return false;
+		}
+
+		public bool SetProfileBasedOnSpeed(float speed, TrajectoryMaker trajectoryMaker, MotionMatchingComponent motionMatching)
+		{
+			TrajectorySettingsProfile bestProfile = null;
+			float bestSpeedDelta = float.MaxValue;
+			for (int i = 0; i < profiles.Count; i++)
+			{
+				var profile = profiles[i];
+				float speedDelta = profile.Creation.MaxSpeed - speed;
+				if (speedDelta >=
+					0 && speedDelta < bestSpeedDelta)
+				{
+					bestProfile = profile;
+					bestSpeedDelta = speedDelta;
+				}
+			}
+
+			if (bestProfile != null)
+			{
+				trajectoryMaker.SetTrajectorySettings(bestProfile.Creation);
+				motionMatching.SetTrajectoryCorrectionSettings(bestProfile.Correction);
+				return true;
+			}
 			return false;
 		}
 	}

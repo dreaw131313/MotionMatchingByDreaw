@@ -78,7 +78,24 @@ namespace MotionMatching.Gameplay
 		[SerializeField]
 		public int SelectedSequenceIndex = 0;
 		[SerializeField]
-		public List<SequenceDescription> Sequences;
+		private List<SequenceDescription> sequences;
+
+		public List<SequenceDescription> Sequences
+		{
+			get
+			{
+				if (sequences == null)
+				{
+					sequences = new List<SequenceDescription>();
+				}
+				if (sequences.Count == 0)
+				{
+					AddSequence("Default");
+					SelectedSequenceIndex = 0;
+				}
+				return sequences;
+			}
+		}
 
 		public StateClass AddState<StateClass>()
 			where StateClass : State_SO
@@ -323,15 +340,9 @@ namespace MotionMatching.Gameplay
 			}
 		}
 
-
-		public void AddDefaultSequence()
-		{
-			AddSequence("Default");
-		}
-
 		public bool AddSequence(string newSequenceName)
 		{
-			foreach (var seq in Sequences)
+			foreach (var seq in sequences)
 			{
 				if (seq.Name == newSequenceName)
 				{
@@ -340,7 +351,7 @@ namespace MotionMatching.Gameplay
 			}
 
 			SequenceIDGenerator += 1;
-			Sequences.Add(new SequenceDescription(newSequenceName, SequenceIDGenerator));
+			sequences.Add(new SequenceDescription(newSequenceName, SequenceIDGenerator));
 			return true;
 		}
 
@@ -359,6 +370,41 @@ namespace MotionMatching.Gameplay
 			}
 
 			return false;
+		}
+
+		public int GetSequenceIndex(string sequence)
+		{
+			for (int i = 0; i < Sequences.Count; i++)
+			{
+				var seq = Sequences[i];
+				if (seq.Name == sequence)
+				{
+					return i;
+				}
+			}
+
+			return -1;
+		}
+
+		public bool IsSequenceEmpty(string sequence)
+		{
+			int seqIndex = GetSequenceIndex(sequence);
+			if(seqIndex == -1)
+			{
+				return true;
+			}
+
+			int sequenceID = Sequences[seqIndex].ID;
+
+			foreach (var state in States)
+			{
+				if(state.SequenceID == sequenceID)
+				{
+					return false;
+				}
+			}
+
+			return true;
 		}
 #endif
 

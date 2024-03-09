@@ -59,9 +59,6 @@ namespace MotionMatching.Tools
 		protected override void OnGUI(Event e)
 		{
 			if (SelectedLayer == null) return;
-			InitSequences();
-
-
 
 			GUILayout.BeginArea(Position);
 			{
@@ -88,7 +85,7 @@ namespace MotionMatching.Tools
 					GUILayout.Space(HorizontaMargin);
 					if (GUILayout.Button("-", GUILayout.Height(20f), GUILayout.Width(20f)) && SelectedLayer.Sequences.Count > 1)
 					{
-						if (SelectedLayer.Sequences.Count > 1)
+						if (SelectedLayer.Sequences.Count > 1 && SelectedLayer.IsSequenceEmpty(SelectedSequence.Name))
 						{
 							currentState = TopBarGraphSpaceState.RemoveSequence;
 						}
@@ -166,16 +163,6 @@ namespace MotionMatching.Tools
 					break;
 			}
 
-		}
-
-		private void InitSequences()
-		{
-			if (SelectedLayer.Sequences == null || SelectedLayer.Sequences.Count == 0)
-			{
-				SelectedLayer.Sequences = new List<SequenceDescription>();
-				SelectedLayer.AddDefaultSequence();
-				SelectedLayer.SelectedSequenceIndex = 0;
-			}
 		}
 
 		private void DrawSequenceSelection()

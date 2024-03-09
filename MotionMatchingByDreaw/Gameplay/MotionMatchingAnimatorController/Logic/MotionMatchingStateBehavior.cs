@@ -14,35 +14,65 @@ namespace MotionMatching.Gameplay
 		protected Transform transform; // transfor from Motion Matching component
 		protected GameObject gameObject; // game object which have Motion Matching comonent 
 
-		public abstract void Enter();
+		public virtual void Enter()
+		{
 
-		public abstract void Update();
+		}
 
-		public abstract void LateUpdate();
+		public virtual void Update()
+		{
 
-		public abstract void FixedUpdate();
+		}
 
-		public abstract void Exit();
+		public virtual void LateUpdate()
+		{
+
+		}
+
+		public virtual void FixedUpdate()
+		{
+
+		}
+
+		public virtual void Exit()
+		{
+
+		}
 
 		/// <summary>
 		/// Called once after contact index change only when added to MotionMatchingContactState
 		/// </summary>
-		public abstract void OnDestinationContactPointChange(int destinationPointIndex);
+		public virtual void OnDestinationContactPointChange(int destinationPointIndex)
+		{
+
+		}
 
 		/// <summary>
 		/// Called when time of animation reach start time of contact.
 		/// </summary>
 		/// <param name="achivedContactPointIndex"></param>
-		public abstract void OnAchiveContactPoint(int achivedContactPointIndex);
+		public virtual void OnAchiveContactPoint(int achivedContactPointIndex)
+		{
 
-		public abstract void OnBeginMovingToContactPoint(int toContactPointIndex);
+		}
 
-		public abstract void OnEndContact(int endedContactIndex);
+		public virtual void OnBeginMovingToContactPoint(int toContactPointIndex)
+		{
+
+		}
+
+		public virtual void OnEndContact(int endedContactIndex)
+		{
+
+		}
 
 		/// <summary>
 		/// Called once after enter to state after first Job has been completed or right after enter to state when in transition is selected option "Do not perform finding".
 		/// </summary>
-		public abstract void OnCompleteEnterFindingJob();
+		public virtual void OnCompleteEnterFindingJob()
+		{
+
+		}
 
 		public void SetBasic(LogicState logicState, MotionMatchingComponent mmAnimator, Transform transform, GameObject gameObject)
 		{

@@ -76,8 +76,13 @@ namespace MotionMatching.Tools
 		{
 			get
 			{
-				if (SelectedLayer == null) return 0;
-				if (SelectedLayer.Sequences == null || SelectedLayer.Sequences.Count == 0) return 0;
+				if (SelectedLayer == null
+					|| SelectedLayer.Sequences == null
+					|| SelectedLayer.SelectedSequenceIndex < 0
+					|| SelectedLayer.SelectedSequenceIndex >= SelectedLayer.Sequences.Count)
+				{
+					return -1;
+				}
 				return SelectedLayer.Sequences[SelectedLayer.SelectedSequenceIndex].ID;
 			}
 		}

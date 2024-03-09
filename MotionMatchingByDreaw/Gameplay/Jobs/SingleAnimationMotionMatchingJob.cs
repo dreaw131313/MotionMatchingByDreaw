@@ -135,8 +135,8 @@ namespace MotionMatching.Gameplay.Jobs
 
 
 				int selectedDataStartFrameIndex = math.clamp(
-					math.max(StartFindingFrameIndex, startIndex), 
-					StartFindingFrameIndex, 
+					math.max(StartFindingFrameIndex, startIndex),
+					StartFindingFrameIndex,
 					lastFindingFrameIndex
 					);
 
@@ -198,4 +198,5 @@ namespace MotionMatching.Gameplay.Jobs
 			}
 		}
 	}
+
 }

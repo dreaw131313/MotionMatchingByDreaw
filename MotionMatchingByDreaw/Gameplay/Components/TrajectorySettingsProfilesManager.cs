@@ -40,6 +40,16 @@ namespace MotionMatching
 
 			return false;
 		}
+
+		public bool SetBestProfileFromSpeed(float speed)
+		{
+			if (profiles != null)
+			{
+				return profiles.SetProfileBasedOnSpeed(speed, trajectoryMaker, motionMatching);
+			}
+
+			return false;
+		}
 	}
 
 }
