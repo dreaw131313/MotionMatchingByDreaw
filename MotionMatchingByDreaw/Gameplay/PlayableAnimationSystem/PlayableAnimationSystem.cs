@@ -165,8 +165,14 @@ namespace MotionMatching.Gameplay
 
 		public void StartPlaying()
 		{
-			AnimationPlayableUtilities.Play(animator, playableToPlay, Graph);
+			//AnimationPlayableUtilities.Play(animator, playableToPlay, Graph);
 
+
+
+			AnimationPlayableOutput playableOutput = AnimationPlayableOutput.Create(Graph, "AnimationClip", animator);
+			playableOutput.SetSourcePlayable(playableToPlay, 0);
+			Graph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+			Graph.Play();
 
 			//AnimationPlayableOutput playableOutput = AnimationPlayableOutput.Create(Graph, "MotionMatchingOutput", animator);
 			//playableOutput.SetSourcePlayable(playableToPlay, 0);

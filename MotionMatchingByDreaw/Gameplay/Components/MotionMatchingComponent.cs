@@ -427,7 +427,6 @@ namespace MotionMatching.Gameplay
 				return;
 			}
 
-
 			motionMatchingController.UnsubscribeMotionMatchingComponentFromMotionGroups(this);
 #endif
 
@@ -3586,7 +3585,9 @@ namespace MotionMatching.Gameplay
 					else
 #endif
 					{
+#if UNITY_EDITOR
 						state.MotionData.SubscribeByMotionMatchingComponent(this);
+#endif
 						int maxGroupJobsOutputCount = state.MotionData.JobsCount;
 						if (maxJobsOutputCount < maxGroupJobsOutputCount)
 						{

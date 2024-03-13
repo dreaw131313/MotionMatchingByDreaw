@@ -501,7 +501,9 @@ namespace MotionMatching.Gameplay
 			if (binaryMotionGroup == null)
 			{
 				isBinaryDataLoaded = false;
+#if UNITY_EDITOR
 				Debug.LogError(string.Format("Failed to load binary data for NativeMoionGroup \"{0}\" at path \"{1}\"", this.name, AssetDatabase.GetAssetPath(this)));
+#endif
 			}
 			else
 			{
